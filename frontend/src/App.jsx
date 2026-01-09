@@ -2,23 +2,36 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import Landing from './pages/Landing'; // Import the new page
-import Support from './pages/Support'; // New
-import Terms from './pages/Terms'; // New
-import Privacy from './pages/Privacy'; // New
+import Landing from './pages/Landing'; 
+import Support from './pages/Support'; 
+import Terms from './pages/Terms'; 
+import Privacy from './pages/Privacy'; 
+
+// --- FIX: Define the ProtectedRoute Component ---
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('access_token');
+  
+  if (!token) {
+    // If no token found, redirect to Login
+    return <Navigate to="/login" replace />;
+  }
+
+  // If token exists, render the protected page (Dashboard)
+  return children;
+};
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes */}
+        {/* Public Routes - Accessible by everyone */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/support" element={<Support />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
         
-        {/* Protected Routes */}
+        {/* Protected Routes - Only accessible if logged in */}
         <Route 
           path="/dashboard" 
           element={
