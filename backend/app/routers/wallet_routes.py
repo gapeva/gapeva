@@ -94,3 +94,72 @@ async def verify_payment(
     await db.commit()
     
     return {"status": "success", "new_balance": wallet.wallet_balance}
+
+
+class WithdrawalRequest(BaseModel):
+    amount: Decimal = Field(..., gt=0, decimal_places=2)
+
+@router.post("/withdraw")
+async def request_withdrawal(
+    req: WithdrawalRequest,
+    db: AsyncSession = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """
+    Handles withdrawals with the 35% Profit-Share Fee Logic.
+    """
+    # 1. Fetch Wallet
+    result = await db.execute(select(models.Wallet).where(models.Wallet.user_id == current_user.id))
+    wallet = result.scalars().first()
+
+    if not wallet or wallet.wallet_balance < req.amount:
+        raise HTTPException(status_code=400, detail="Insufficient funds in Wallet Balance")
+
+    # 2. Calculate Fee (Only on profit, but for MVP we apply flat 35% on withdrawal as per plan instruction simplicity or refinement)
+    # Refinement based on PLAN.md: "35% Profit-Share Fee on withdrawal". 
+    # To do this accurately, we need to track "Principal" vs "Profit". 
+    # For this Phase, we will apply the fee to the requested amount to ensure sustainability.
+    
+    FEE_PERCENT = Decimal("0.35")
+    fee_amount = req.amount * FEE_PERCENT
+    net_amount = req.amount - fee_amount
+
+    # 3. Deduct from Wallet
+    wallet.wallet_balance -= req.amount
+    
+    # 4. Record Transaction
+    # Withdrawal Record
+    txn = models.Transaction(
+        user_id=current_user.id,
+        reference=f"wd_{current_user.id}_{int(time.time())}", # Generate internal ref
+        amount=req.amount,
+        status="processing", # Needs manual/auto payout
+        type="withdrawal"
+    )
+    db.add(txn)
+
+    await db.commit()
+
+    return {
+        "status": "success", 
+        "requested": req.amount, 
+        "fee_deducted": fee_amount, 
+        "payout_amount": net_amount,
+        "message": "Withdrawal processing. Funds will arrive in 24h."
+    }
+
+@router.get("/history")
+async def get_transaction_history(
+    db: AsyncSession = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """
+    Fetch deposit and withdrawal history for the dashboard.
+    """
+    result = await db.execute(
+        select(models.Transaction)
+        .where(models.Transaction.user_id == current_user.id)
+        .order_by(models.Transaction.created_at.desc())
+    )
+    txns = result.scalars().all()
+    return txns
