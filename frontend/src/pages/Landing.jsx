@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, Shield, TrendingUp, Cpu, ChevronDown, Instagram, X as XIcon, Lock, Wallet, ArrowDown } from 'lucide-react';
 
 // --- CUSTOM COMPONENTS ---
@@ -313,14 +313,14 @@ const Landing = () => {
                 <div className="flex flex-col gap-3 text-sm text-gray-400">
                   <a href="#how-it-works" className="hover:text-gold-400 transition-colors">How it Works</a>
                   <a href="#performance" className="hover:text-gold-400 transition-colors">Performance</a>
-                  <a href="/support" className="hover:text-gold-400 transition-colors">Contact Support</a>
+                  <Link to="/support" className="hover:text-gold-400 transition-colors">Contact Support</Link>
                 </div>
               </div>
               <div>
                 <h4 className="text-white font-bold mb-4">Legal</h4>
                 <div className="flex flex-col gap-3 text-sm text-gray-400">
-                  <a href="/terms" className="hover:text-gold-400 transition-colors">Terms of Service</a>
-                  <a href="/privacy" className="hover:text-gold-400 transition-colors">Privacy Policy</a>
+                  <Link to="/terms" className="hover:text-gold-400 transition-colors">Terms of Service</Link>
+                  <Link to="/privacy" className="hover:text-gold-400 transition-colors">Privacy Policy</Link>
                 </div>
               </div>
             </div>
