@@ -8,15 +8,14 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy'; 
 
 // --- FIX: Define the ProtectedRoute Component ---
+// This checks if the user has a token. If not, it forces them to Login.
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('access_token');
   
   if (!token) {
-    // If no token found, redirect to Login
     return <Navigate to="/login" replace />;
   }
 
-  // If token exists, render the protected page (Dashboard)
   return children;
 };
 
