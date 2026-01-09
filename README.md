@@ -1,16 +1,24 @@
-## Hi there 👋
+# Gapeva Protocol
 
-<!--
-**gapeva/gapeva** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+A luxury algorithmic trading platform that automates wealth preservation and growth using a Quantitative Agent.
 
-Here are some ideas to get you started:
+## Project Structure
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+This is a Monorepo containing:
+- **frontend/**: React 18 + Vite + Tailwind CSS (The Luxury UI)
+- **backend/**: FastAPI + SQLAlchemy (The Ledger & API)
+- **trading_engine/**: Python + CCXT (The Logic Bot)
+
+## 🚀 Quick Start (Local Development)
+
+### Prerequisites
+- Node.js & npm
+- Python 3.12+
+
+### 1. Setup Backend
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
