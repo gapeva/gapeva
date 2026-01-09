@@ -21,11 +21,10 @@ const DashboardLayout = ({ children }) => {
   const SidebarContent = () => (
     <div className="flex flex-col h-full p-6 bg-navy-900 border-r border-gold-400/10">
         <div className="mb-10 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-                <span className="text-2xl">⭐</span>
+            <div className="flex items-center gap-3">
+                <img src="/logo.png" alt="Gapeva" className="h-8 w-auto" />
                 <span className="font-serif text-2xl text-gold-400 tracking-wide">GAPEVA</span>
             </div>
-            {/* Close Button for Mobile */}
             <button className="md:hidden text-gray-400 hover:text-white" onClick={() => setIsMobileMenuOpen(false)}>
                 <X size={24} />
             </button>
