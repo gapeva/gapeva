@@ -11,10 +11,11 @@ const Landing = () => {
       {/* 1. HEADER / NAVBAR */}
       <nav className="fixed w-full z-50 bg-navy-900/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">⭐</span>
-            <span className="font-serif text-2xl text-gold-400 tracking-wide font-bold">GAPEVA</span>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.location.href = '/'}>
+            <img src="/logo.png" alt="Gapeva Logo" className="h-10 w-auto" />
+            <span className="font-serif text-2xl text-gold-400 tracking-wide font-bold hidden sm:block">GAPEVA</span>
           </div>
+          
           <div className="hidden md:flex gap-8 text-sm font-medium text-gray-300">
             <a href="#how-it-works" className="hover:text-gold-400 transition-colors">How it Works</a>
             <a href="#performance" className="hover:text-gold-400 transition-colors">Performance</a>
