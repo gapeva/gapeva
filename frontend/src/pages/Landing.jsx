@@ -1,36 +1,173 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Shield, TrendingUp, Cpu, ChevronDown, Instagram, X as XIcon } from 'lucide-react';
+import { ArrowRight, Shield, TrendingUp, Cpu, ChevronDown, Instagram, X as XIcon, Lock, Wallet, ArrowDown } from 'lucide-react';
 
-// Custom TikTok Icon (Since Lucide doesn't have it)
+// --- CUSTOM COMPONENTS ---
+
+// TikTok Icon
 const TikTokIcon = ({ size = 24, className }) => (
-  <svg 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
   </svg>
 );
 
+// FAQ Item
+const FAQItem = ({ question, answer }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  return (
+    <div className="border border-white/5 rounded-lg bg-navy-800/30 overflow-hidden">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+      >
+        <span className="font-medium text-gray-200">{question}</span>
+        <ChevronDown className={`text-gold-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      {isOpen && (
+        <div className="px-6 pb-4 text-gray-400 text-sm leading-relaxed border-t border-white/5 pt-4">
+          {answer}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// --- NEW VISUALIZER COMPONENT ---
+const SystemVisualizer = () => {
+    return (
+        <div className="py-12 w-full max-w-5xl mx-auto">
+            <h3 className="text-center font-serif text-2xl text-white mb-10">Inside the Protocol: The Flow of Wealth</h3>
+            
+            {/* Desktop View: Horizontal Flow */}
+            <div className="hidden md:flex justify-between items-center gap-4 relative">
+                {/* Connecting Line */}
+                <div className="absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-navy-800 via-gold-400/50 to-navy-800 -z-10"></div>
+
+                {/* Step 1: User */}
+                <div className="flex flex-col items-center gap-4 text-center group">
+                    <div className="w-20 h-20 bg-navy-800 border-2 border-gold-400/30 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform bg-navy-900 z-10">
+                        <Wallet className="text-gold-400" size={32} />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-white">1. Deposit</h4>
+                        <p className="text-xs text-gray-400 max-w-[120px]">You deposit USD via Card (Paystack)</p>
+                    </div>
+                </div>
+
+                {/* Arrow */}
+                <div className="text-gold-400 animate-pulse">
+                    <ArrowRight size={24} />
+                </div>
+
+                {/* Step 2: Safe Wallet */}
+                <div className="flex flex-col items-center gap-4 text-center group">
+                    <div className="w-20 h-20 bg-navy-800 border-2 border-green-500/30 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform bg-navy-900 z-10">
+                        <Lock className="text-green-400" size={32} />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-white">2. Secure</h4>
+                        <p className="text-xs text-gray-400 max-w-[120px]">Funds sit in your Safe Wallet</p>
+                    </div>
+                </div>
+
+                {/* Arrow */}
+                <div className="text-gold-400 animate-pulse">
+                    <ArrowRight size={24} />
+                </div>
+
+                {/* Step 3: The Brain */}
+                <div className="flex flex-col items-center gap-4 text-center group">
+                    <div className="w-24 h-24 bg-navy-800 border-4 border-gold-400 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.3)] bg-navy-900 z-10 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gold-400/10 animate-pulse"></div>
+                        <Cpu className="text-gold-400 relative z-10" size={40} />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-gold-400">3. AI Agent</h4>
+                        <p className="text-xs text-gray-400 max-w-[140px]">Allocated capital is traded 24/7 (EMA/RSI)</p>
+                    </div>
+                </div>
+
+                 {/* Arrow */}
+                 <div className="text-gold-400 animate-pulse">
+                    <ArrowRight size={24} />
+                </div>
+
+                {/* Step 4: Profit */}
+                <div className="flex flex-col items-center gap-4 text-center group">
+                    <div className="w-20 h-20 bg-navy-800 border-2 border-green-500/30 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform bg-navy-900 z-10">
+                        <TrendingUp className="text-green-400" size={32} />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-white">4. Growth</h4>
+                        <p className="text-xs text-gray-400 max-w-[120px]">Profits return to your Dashboard</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Mobile View: Vertical Flow */}
+            <div className="md:hidden flex flex-col items-center gap-8">
+                {/* Step 1 */}
+                <div className="flex items-center gap-4 w-full bg-navy-800 p-4 rounded-xl border border-white/5">
+                    <Wallet className="text-gold-400 shrink-0" size={24} />
+                    <div>
+                        <h4 className="font-bold text-white text-sm">1. You Deposit Funds</h4>
+                        <p className="text-xs text-gray-400">Secure transaction via Paystack</p>
+                    </div>
+                </div>
+                <ArrowDown className="text-gold-400/50" size={20} />
+                
+                {/* Step 2 */}
+                <div className="flex items-center gap-4 w-full bg-navy-800 p-4 rounded-xl border border-white/5">
+                    <Lock className="text-green-400 shrink-0" size={24} />
+                    <div>
+                        <h4 className="font-bold text-white text-sm">2. Safe Wallet Storage</h4>
+                        <p className="text-xs text-gray-400">Funds are held safely until you act</p>
+                    </div>
+                </div>
+                <ArrowDown className="text-gold-400/50" size={20} />
+
+                {/* Step 3 */}
+                <div className="flex items-center gap-4 w-full bg-navy-900 p-6 rounded-xl border border-gold-400 shadow-[0_0_15px_rgba(212,175,55,0.2)]">
+                    <Cpu className="text-gold-400 shrink-0 animate-pulse" size={32} />
+                    <div>
+                        <h4 className="font-bold text-gold-400 text-lg">3. The AI Trades</h4>
+                        <p className="text-xs text-gray-300">Bot executes strategy. Panic Switch protects downside.</p>
+                    </div>
+                </div>
+                <ArrowDown className="text-gold-400/50" size={20} />
+
+                {/* Step 4 */}
+                <div className="flex items-center gap-4 w-full bg-navy-800 p-4 rounded-xl border border-white/5">
+                    <TrendingUp className="text-green-400 shrink-0" size={24} />
+                    <div>
+                        <h4 className="font-bold text-white text-sm">4. Profit & Withdraw</h4>
+                        <p className="text-xs text-gray-400">Compounded gains available 24/7</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="text-center mt-12">
+                <p className="text-gray-400 text-sm max-w-2xl mx-auto italic">
+                    "We have stripped away the complexity of charts, candles, and exchanges. You simply see your wealth grow."
+                </p>
+            </div>
+        </div>
+    );
+};
+
+
+// --- MAIN PAGE COMPONENT ---
 const Landing = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-navy-900 text-white font-sans selection:bg-gold-400 selection:text-navy-900 flex flex-col">
       
-      {/* 1. HEADER - UPDATED FOR LOGO SIZE/POSITION */}
+      {/* 1. HEADER */}
       <nav className="fixed w-full z-50 bg-navy-900/80 backdrop-blur-md border-b border-white/5">
-        {/* Removed max-w-7xl to allow full width, reduced px to 4 for extreme left */}
         <div className="w-full px-4 md:px-8 h-24 flex items-center justify-between">
           
-          {/* Logo Section - Increased Size */}
+          {/* Logo Section */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.location.href = '/'}>
             <img src="/logo.png" alt="Gapeva" className="h-14 w-auto object-contain" />
             <span className="font-serif text-3xl text-gold-400 tracking-wide font-bold hidden sm:block">GAPEVA</span>
@@ -81,16 +218,22 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* 3. HOW IT WORKS */}
-      <section id="how-it-works" className="py-24 bg-navy-800/50">
+      {/* 3. HOW IT WORKS (Updated with Visualizer) */}
+      <section id="how-it-works" className="py-24 bg-navy-800/50 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="font-serif text-4xl text-white mb-4">The Quantitative Edge</h2>
             <p className="text-gray-400">Powered by math, not emotion.</p>
           </div>
+
+          {/* NEW VISUALIZER INSERTED HERE */}
+          <div className="mb-24">
+             <SystemVisualizer />
+          </div>
+          
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-navy-900 p-8 rounded-2xl border border-white/5 hover:border-gold-400/30 transition-all">
-              <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 mb-6">
+            <div className="bg-navy-900 p-8 rounded-2xl border border-white/5 hover:border-gold-400/30 transition-all group">
+              <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 mb-6 group-hover:scale-110 transition-transform">
                 <Cpu size={24} />
               </div>
               <h3 className="font-serif text-xl text-white mb-3">AI-Driven Logic</h3>
@@ -98,8 +241,9 @@ const Landing = () => {
                 Our bot analyzes EMA 200/50 trends and RSI momentum 24/7. It executes trades with millisecond precision that humans cannot match.
               </p>
             </div>
-            <div className="bg-navy-900 p-8 rounded-2xl border border-white/5 hover:border-gold-400/30 transition-all">
-              <div className="w-12 h-12 bg-gold-400/10 rounded-xl flex items-center justify-center text-gold-400 mb-6">
+
+            <div className="bg-navy-900 p-8 rounded-2xl border border-white/5 hover:border-gold-400/30 transition-all group">
+              <div className="w-12 h-12 bg-gold-400/10 rounded-xl flex items-center justify-center text-gold-400 mb-6 group-hover:scale-110 transition-transform">
                 <Shield size={24} />
               </div>
               <h3 className="font-serif text-xl text-white mb-3">Zero-Loss Protection</h3>
@@ -107,8 +251,9 @@ const Landing = () => {
                 The "Panic Switch" protocol instantly liquidates assets to stablecoins if the market drops 5% in 24 hours. Your principal is sacred.
               </p>
             </div>
-            <div className="bg-navy-900 p-8 rounded-2xl border border-white/5 hover:border-gold-400/30 transition-all">
-              <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center text-green-400 mb-6">
+
+            <div className="bg-navy-900 p-8 rounded-2xl border border-white/5 hover:border-gold-400/30 transition-all group">
+              <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center text-green-400 mb-6 group-hover:scale-110 transition-transform">
                 <TrendingUp size={24} />
               </div>
               <h3 className="font-serif text-xl text-white mb-3">Compounding Growth</h3>
@@ -120,7 +265,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* 4. FAQ */}
+      {/* 4. FAQ SECTION */}
       <section id="faq" className="py-24 px-6">
         <div className="max-w-3xl mx-auto">
           <h2 className="font-serif text-4xl text-center text-white mb-12">Frequently Asked Questions</h2>
@@ -145,7 +290,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* 5. FOOTER - UPDATED WITH SOCIALS & LINKS */}
+      {/* 5. FOOTER */}
       <footer className="bg-navy-900 border-t border-white/5 pt-16 pb-8 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
@@ -204,26 +349,6 @@ const Landing = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
-};
-
-const FAQItem = ({ question, answer }) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  return (
-    <div className="border border-white/5 rounded-lg bg-navy-800/30 overflow-hidden">
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
-      >
-        <span className="font-medium text-gray-200">{question}</span>
-        <ChevronDown className={`text-gold-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-      {isOpen && (
-        <div className="px-6 pb-4 text-gray-400 text-sm leading-relaxed border-t border-white/5 pt-4">
-          {answer}
-        </div>
-      )}
     </div>
   );
 };
