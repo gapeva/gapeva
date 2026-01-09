@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
+import DepositModal from '../components/DepositModal'; // [1. Import Modal]
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { PlusCircle } from 'lucide-react'; // Icon for deposit action
 
 // Mock Data for the chart (Will be replaced by API data later)
 const data = [
@@ -14,16 +16,33 @@ const data = [
 ];
 
 const Dashboard = () => {
+  // [2. State] Control the visibility of the Deposit Modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <DashboardLayout>
       {/* 1. Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         
-        {/* Wallet Balance (Safe) */}
-        <div className="bg-navy-800 p-6 rounded-xl border border-gray-800 relative overflow-hidden group hover:border-gold-400/30 transition-all">
+        {/* Wallet Balance (Safe) - [3. Trigger] Added onClick to open modal */}
+        <div 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-navy-800 p-6 rounded-xl border border-gray-800 relative overflow-hidden group hover:border-gold-400/30 transition-all cursor-pointer"
+        >
             <div className="absolute top-0 right-0 w-20 h-20 bg-gold-400/5 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
-            <p className="text-gray-400 text-sm font-sans uppercase tracking-wider mb-1">Wallet Balance (Safe)</p>
-            <h3 className="text-3xl font-serif text-white">$1,250.00</h3>
+            
+            <div className="flex justify-between items-start">
+                <div>
+                    <p className="text-gray-400 text-sm font-sans uppercase tracking-wider mb-1">Wallet Balance (Safe)</p>
+                    <h3 className="text-3xl font-serif text-white">$1,250.00</h3>
+                </div>
+                <div className="bg-navy-900 p-2 rounded-full text-gold-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <PlusCircle size={20} />
+                </div>
+            </div>
+            <p className="text-xs text-gold-400 mt-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                + Click to Deposit Funds
+            </p>
         </div>
 
         {/* Trading Balance (Active) */}
@@ -81,6 +100,15 @@ const Dashboard = () => {
             <p>[14:32:00] <span className="text-green-400">CHECK:</span> Global Pool Sync Complete. Balance Verified.</p>
         </div>
       </div>
+
+      {/* [4. Render Modal] This sits on top when state is true */}
+      <DepositModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        userEmail="user@example.com" // Ideally, get this from your Auth Context
+        onSuccess={() => console.log("Deposit Success - Refresh Balances")} 
+      />
+
     </DashboardLayout>
   );
 };
