@@ -1,16 +1,26 @@
-import httpx # You might need to pip install httpx
+import httpx 
+import os
+import time
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from decimal import Decimal
 from app import auth, models, database
-import time
-
 
 router = APIRouter(tags=["Wallet"])
 
+# --- SECURITY: Load Paystack Key from Environment Variables ---
+# This ensures your real money keys are never written in the code.
+PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY")
+
 class DepositRequest(BaseModel):
+    amount: Decimal = Field(..., gt=0, decimal_places=2)
+
+class PaymentVerification(BaseModel):
+    reference: str
+
+class WithdrawalRequest(BaseModel):
     amount: Decimal = Field(..., gt=0, decimal_places=2)
 
 @router.post("/validate-deposit")
@@ -20,7 +30,7 @@ async def validate_deposit_intent(
 ):
     """
     Core Logic: Enforces the $3.00 Minimum Deposit.
-    This runs BEFORE we send data to Paystack in Phase 3.
+    This runs BEFORE we send data to Paystack.
     """
     MIN_DEPOSIT = Decimal("3.00")
     
@@ -31,12 +41,6 @@ async def validate_deposit_intent(
         )
     
     return {"status": "valid", "message": "Deposit amount authorized."}
-
-# PAYSTACK CONFIGURATION (Move to .env in production)
-PAYSTACK_SECRET_KEY = "sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" # REPLACE THIS WITH YOUR TEST KEY
-
-class PaymentVerification(BaseModel):
-    reference: str
 
 @router.post("/verify-deposit")
 async def verify_payment(
@@ -49,7 +53,10 @@ async def verify_payment(
     2. Update User's Wallet Balance
     3. Log the Transaction
     """
-    
+    # Safety Check: Ensure the server has the key before proceeding
+    if not PAYSTACK_SECRET_KEY:
+        raise HTTPException(status_code=500, detail="Server misconfiguration: Payment key missing in environment variables.")
+
     # A. Call Paystack API to verify
     headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
     async with httpx.AsyncClient() as client:
@@ -58,16 +65,14 @@ async def verify_payment(
     if resp.status_code != 200:
         raise HTTPException(status_code=400, detail="Verification failed with payment provider")
     
-    data = resp.json()['data']
+    data = resp.json().get('data', {})
     
     # B. Security Checks
-    if data['status'] != 'success':
+    if data.get('status') != 'success':
         raise HTTPException(status_code=400, detail="Transaction was not successful")
         
     # Paystack returns amount in kobo (cents). Convert to dollars/main currency.
-    # Assuming the app is USD based, but Paystack is often NGN. 
-    # For this implementation, we assume 1 Unit = 1 USD for simplicity, or we treat NGN as the base.
-    # If using USD on Paystack, amount is in cents.
+    # We assume 1 Unit = 1 USD for simplicity.
     amount_paid = Decimal(str(data['amount'])) / 100
     
     # C. Check if reference already used (Double Spending Protection)
@@ -87,18 +92,20 @@ async def verify_payment(
     db.add(new_txn)
     
     # 2. Credit the Wallet
-    # We must fetch the wallet first
     wallet_result = await db.execute(select(models.Wallet).where(models.Wallet.user_id == current_user.id))
     wallet = wallet_result.scalars().first()
+    
+    # Ensure wallet exists (defensive coding)
+    if not wallet:
+        # Should technically never happen if signup flow works, but safe to check
+        wallet = models.Wallet(user_id=current_user.id, wallet_balance=0.00, trading_balance=0.00)
+        db.add(wallet)
+
     wallet.wallet_balance += amount_paid
     
     await db.commit()
     
     return {"status": "success", "new_balance": wallet.wallet_balance}
-
-
-class WithdrawalRequest(BaseModel):
-    amount: Decimal = Field(..., gt=0, decimal_places=2)
 
 @router.post("/withdraw")
 async def request_withdrawal(
@@ -116,11 +123,7 @@ async def request_withdrawal(
     if not wallet or wallet.wallet_balance < req.amount:
         raise HTTPException(status_code=400, detail="Insufficient funds in Wallet Balance")
 
-    # 2. Calculate Fee (Only on profit, but for MVP we apply flat 35% on withdrawal as per plan instruction simplicity or refinement)
-    # Refinement based on PLAN.md: "35% Profit-Share Fee on withdrawal". 
-    # To do this accurately, we need to track "Principal" vs "Profit". 
-    # For this Phase, we will apply the fee to the requested amount to ensure sustainability.
-    
+    # 2. Calculate Fee (35% on withdrawal amount as per current logic)
     FEE_PERCENT = Decimal("0.35")
     fee_amount = req.amount * FEE_PERCENT
     net_amount = req.amount - fee_amount
@@ -129,7 +132,6 @@ async def request_withdrawal(
     wallet.wallet_balance -= req.amount
     
     # 4. Record Transaction
-    # Withdrawal Record
     txn = models.Transaction(
         user_id=current_user.id,
         reference=f"wd_{current_user.id}_{int(time.time())}", # Generate internal ref
