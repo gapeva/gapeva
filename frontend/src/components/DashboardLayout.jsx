@@ -26,7 +26,7 @@ const DashboardLayout = ({ children }) => {
                 <span className="font-serif text-2xl text-gold-400 tracking-wide">GAPEVA</span>
             </div>
             {/* Close Button for Mobile */}
-            <button className="md:hidden text-gray-400" onClick={() => setIsMobileMenuOpen(false)}>
+            <button className="md:hidden text-gray-400 hover:text-white" onClick={() => setIsMobileMenuOpen(false)}>
                 <X size={24} />
             </button>
         </div>
@@ -67,7 +67,7 @@ const DashboardLayout = ({ children }) => {
         <header className="h-20 border-b border-gold-400/10 flex items-center justify-between px-6 bg-navy-900/50 backdrop-blur-md sticky top-0 z-10">
             <div className="flex items-center gap-4">
                 {/* Mobile Menu Button */}
-                <button className="md:hidden text-gold-400" onClick={() => setIsMobileMenuOpen(true)}>
+                <button className="md:hidden text-gold-400 hover:text-white" onClick={() => setIsMobileMenuOpen(true)}>
                     <Menu size={24} />
                 </button>
                 <h2 className="font-serif text-xl text-white">Portfolio Overview</h2>
