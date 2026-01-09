@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. The Brain (API)
+  # 1. THE BRAIN (Backend API)
   backend:
     build: ./backend
     ports:
@@ -10,28 +10,32 @@ services:
       - ./backend:/app
     environment:
       - DATABASE_URL=sqlite+aiosqlite:///./gapeva.db
-      - SECRET_KEY=dev_secret
+      - SECRET_KEY=dev_secret_key_change_in_prod
+      - PAYSTACK_SECRET_KEY=sk_test_replace_me_in_env_file
     networks:
       - gapeva-net
 
-  # 2. The Face (UI)
+  # 2. THE FACE (Frontend UI)
   frontend:
     build: ./frontend
     ports:
       - "5173:80"
     volumes:
       - ./frontend:/app
+      - /app/node_modules
     networks:
       - gapeva-net
 
-  # 3. The Agent (Bot)
+  # 3. THE AGENT (Trading Bot)
   trading_bot:
     build: ./trading_engine
     volumes:
       - ./trading_engine:/app
-      - ./backend/gapeva.db:/backend/gapeva.db # Share DB
+      - ./backend/gapeva.db:/backend/gapeva.db # Share SQLite DB for local dev
     environment:
       - DATABASE_URL=sqlite:///../backend/gapeva.db
+      - BINANCE_API_KEY=replace_me
+      - BINANCE_SECRET=replace_me
     depends_on:
       - backend
     networks:
