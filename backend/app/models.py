@@ -35,3 +35,18 @@ class Wallet(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     user = relationship("User", back_populates="wallet")
+
+# ... (existing User and Wallet classes)
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    reference = Column(String, unique=True, index=True) # Paystack Reference
+    amount = Column(Numeric(18, 2), nullable=False)
+    status = Column(String, default="pending") # pending, success, failed
+    type = Column(String, default="deposit")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User")
