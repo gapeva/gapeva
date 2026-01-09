@@ -1,19 +1,39 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Shield, TrendingUp, Cpu, ChevronDown } from 'lucide-react';
+import { ArrowRight, Shield, TrendingUp, Cpu, ChevronDown, Instagram, X as XIcon } from 'lucide-react';
+
+// Custom TikTok Icon (Since Lucide doesn't have it)
+const TikTokIcon = ({ size = 24, className }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </svg>
+);
 
 const Landing = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-navy-900 text-white font-sans selection:bg-gold-400 selection:text-navy-900">
+    <div className="min-h-screen bg-navy-900 text-white font-sans selection:bg-gold-400 selection:text-navy-900 flex flex-col">
       
-      {/* 1. HEADER / NAVBAR */}
+      {/* 1. HEADER - UPDATED FOR LOGO SIZE/POSITION */}
       <nav className="fixed w-full z-50 bg-navy-900/80 backdrop-blur-md border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        {/* Removed max-w-7xl to allow full width, reduced px to 4 for extreme left */}
+        <div className="w-full px-4 md:px-8 h-24 flex items-center justify-between">
+          
+          {/* Logo Section - Increased Size */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.location.href = '/'}>
-            <img src="/logo.png" alt="Gapeva Logo" className="h-10 w-auto" />
-            <span className="font-serif text-2xl text-gold-400 tracking-wide font-bold hidden sm:block">GAPEVA</span>
+            <img src="/logo.png" alt="Gapeva" className="h-14 w-auto object-contain" />
+            <span className="font-serif text-3xl text-gold-400 tracking-wide font-bold hidden sm:block">GAPEVA</span>
           </div>
           
           <div className="hidden md:flex gap-8 text-sm font-medium text-gray-300">
@@ -33,7 +53,7 @@ const Landing = () => {
       </nav>
 
       {/* 2. HERO SECTION */}
-      <section className="pt-40 pb-20 px-6">
+      <section className="pt-48 pb-20 px-6 flex-grow">
         <div className="max-w-7xl mx-auto text-center">
           <div className="inline-block px-4 py-1.5 rounded-full border border-gold-400/30 bg-gold-400/10 text-gold-400 text-sm font-medium mb-8 animate-fade-in">
             The Elite Quantitative Protocol
@@ -61,14 +81,13 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* 3. HOW IT WORKS (Features) */}
+      {/* 3. HOW IT WORKS */}
       <section id="how-it-works" className="py-24 bg-navy-800/50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="font-serif text-4xl text-white mb-4">The Quantitative Edge</h2>
             <p className="text-gray-400">Powered by math, not emotion.</p>
           </div>
-          
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-navy-900 p-8 rounded-2xl border border-white/5 hover:border-gold-400/30 transition-all">
               <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 mb-6">
@@ -79,7 +98,6 @@ const Landing = () => {
                 Our bot analyzes EMA 200/50 trends and RSI momentum 24/7. It executes trades with millisecond precision that humans cannot match.
               </p>
             </div>
-
             <div className="bg-navy-900 p-8 rounded-2xl border border-white/5 hover:border-gold-400/30 transition-all">
               <div className="w-12 h-12 bg-gold-400/10 rounded-xl flex items-center justify-center text-gold-400 mb-6">
                 <Shield size={24} />
@@ -89,7 +107,6 @@ const Landing = () => {
                 The "Panic Switch" protocol instantly liquidates assets to stablecoins if the market drops 5% in 24 hours. Your principal is sacred.
               </p>
             </div>
-
             <div className="bg-navy-900 p-8 rounded-2xl border border-white/5 hover:border-gold-400/30 transition-all">
               <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center text-green-400 mb-6">
                 <TrendingUp size={24} />
@@ -103,11 +120,10 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* 4. FAQ SECTION */}
+      {/* 4. FAQ */}
       <section id="faq" className="py-24 px-6">
         <div className="max-w-3xl mx-auto">
           <h2 className="font-serif text-4xl text-center text-white mb-12">Frequently Asked Questions</h2>
-          
           <div className="space-y-4">
             <FAQItem 
               question="What is the minimum deposit?" 
@@ -129,20 +145,62 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* 5. FOOTER */}
-      <footer className="bg-navy-900 border-t border-white/5 py-12 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">⭐</span>
-            <span className="font-serif text-xl text-gray-400">GAPEVA</span>
+      {/* 5. FOOTER - UPDATED WITH SOCIALS & LINKS */}
+      <footer className="bg-navy-900 border-t border-white/5 pt-16 pb-8 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
+            
+            {/* Footer Logo Section */}
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <img src="/logo.png" alt="Gapeva" className="h-12 w-auto object-contain" />
+                <span className="font-serif text-2xl text-gold-400 tracking-wide font-bold">GAPEVA</span>
+              </div>
+              <p className="text-gray-400 text-sm max-w-xs leading-relaxed">
+                The elite algorithmic trading protocol. Automated wealth preservation and growth for the modern investor.
+              </p>
+            </div>
+
+            {/* Links */}
+            <div className="flex gap-16">
+              <div>
+                <h4 className="text-white font-bold mb-4">Company</h4>
+                <div className="flex flex-col gap-3 text-sm text-gray-400">
+                  <a href="#how-it-works" className="hover:text-gold-400 transition-colors">How it Works</a>
+                  <a href="#performance" className="hover:text-gold-400 transition-colors">Performance</a>
+                  <a href="/support" className="hover:text-gold-400 transition-colors">Contact Support</a>
+                </div>
+              </div>
+              <div>
+                <h4 className="text-white font-bold mb-4">Legal</h4>
+                <div className="flex flex-col gap-3 text-sm text-gray-400">
+                  <a href="/terms" className="hover:text-gold-400 transition-colors">Terms of Service</a>
+                  <a href="/privacy" className="hover:text-gold-400 transition-colors">Privacy Policy</a>
+                </div>
+              </div>
+            </div>
+
+            {/* Socials */}
+            <div>
+              <h4 className="text-white font-bold mb-4">Connect</h4>
+              <div className="flex gap-4 mb-4">
+                <a href="https://twitter.com/gapevadotcom" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-navy-800 flex items-center justify-center text-gray-400 hover:bg-gold-400 hover:text-navy-900 transition-all">
+                  <XIcon size={20} />
+                </a>
+                <a href="https://instagram.com/gapevadotcom" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-navy-800 flex items-center justify-center text-gray-400 hover:bg-gold-400 hover:text-navy-900 transition-all">
+                  <Instagram size={20} />
+                </a>
+                <a href="https://tiktok.com/@gapevadotcom" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-navy-800 flex items-center justify-center text-gray-400 hover:bg-gold-400 hover:text-navy-900 transition-all">
+                  <TikTokIcon size={20} />
+                </a>
+              </div>
+              <p className="text-gold-400 text-sm font-medium">@gapevadotcom</p>
+            </div>
           </div>
-          <div className="text-gray-600 text-sm">
-            © 2024 Gapeva Protocol. All Rights Reserved.
-          </div>
-          <div className="flex gap-6 text-gray-500 text-sm">
-            <a href="#" className="hover:text-gold-400">Terms</a>
-            <a href="#" className="hover:text-gold-400">Privacy</a>
-            <a href="#" className="hover:text-gold-400">Support</a>
+
+          <div className="border-t border-white/5 pt-8 text-center md:text-left text-gray-600 text-sm flex flex-col md:flex-row justify-between items-center">
+            <p>© 2026 Gapeva Protocol. All Rights Reserved.</p>
+            <p>Made with ⭐ for the Elite.</p>
           </div>
         </div>
       </footer>
