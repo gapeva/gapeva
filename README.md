@@ -10,7 +10,7 @@ This is a Monorepo containing:
 - **trading_engine/**: Python + CCXT (The Logic Bot)
 
 ## 🚀 Quick Start (Local Development)
-
+vengence
 ### Prerequisites
 - Node.js & npm
 - Python 3.12+
