@@ -63,7 +63,9 @@ const Login = () => {
         
         {/* Header */}
         <div className="text-center mb-8">
-            <div className="text-4xl mb-2">⭐</div> 
+            <div className="flex justify-center mb-4">
+                <img src="/logo.png" alt="Gapeva" className="h-16 w-auto animate-fade-in" />
+            </div>
             <h2 className="text-3xl font-serif text-gold-400 mb-2">
             {isLogin ? 'Welcome Back' : 'Join the Elite'}
             </h2>
