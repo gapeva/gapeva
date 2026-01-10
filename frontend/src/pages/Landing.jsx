@@ -175,7 +175,7 @@ const Landing = () => {
           
           <div className="hidden md:flex gap-8 text-sm font-medium text-gray-300">
             <a href="#how-it-works" className="hover:text-gold-400 transition-colors">How it Works</a>
-            <Link to="/performance" className="hover:text-gold-400 transition-colors">Performance</Link>
+            {/* <Link to="/performance" className="hover:text-gold-400 transition-colors">Performance</Link> */}
             <a href="#faq" className="hover:text-gold-400 transition-colors">FAQ</a>
           </div>
           <div className="flex gap-4">
@@ -312,7 +312,7 @@ const Landing = () => {
                 <h4 className="text-white font-bold mb-4">Company</h4>
                 <div className="flex flex-col gap-3 text-sm text-gray-400">
                   <a href="#how-it-works" className="hover:text-gold-400 transition-colors">How it Works</a>
-                  <Link to="/performance" className="hover:text-gold-400 transition-colors">Performance</Link>
+                  {/* <Link to="/performance" className="hover:text-gold-400 transition-colors">Performance</Link> */}
                   <Link to="/support" className="hover:text-gold-400 transition-colors">Contact Support</Link>
                 </div>
               </div>
