@@ -175,7 +175,7 @@ const Landing = () => {
           
           <div className="hidden md:flex gap-8 text-sm font-medium text-gray-300">
             <a href="#how-it-works" className="hover:text-gold-400 transition-colors">How it Works</a>
-            <a href="#performance" className="hover:text-gold-400 transition-colors">Performance</a>
+            <Link to="/performance" className="hover:text-gold-400 transition-colors">Performance</Link>
             <a href="#faq" className="hover:text-gold-400 transition-colors">FAQ</a>
           </div>
           <div className="flex gap-4">
