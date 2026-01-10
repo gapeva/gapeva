@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, Shield, TrendingUp, Cpu, ChevronDown, Instagram, X as XIcon, Lock, Wallet, ArrowDown } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 // --- CUSTOM COMPONENTS ---
 
