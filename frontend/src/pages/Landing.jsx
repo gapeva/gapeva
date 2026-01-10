@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, Shield, TrendingUp, Cpu, ChevronDown, Instagram, X as XIcon, Lock, Wallet, ArrowDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // --- CUSTOM COMPONENTS ---
 
@@ -312,7 +313,7 @@ const Landing = () => {
                 <h4 className="text-white font-bold mb-4">Company</h4>
                 <div className="flex flex-col gap-3 text-sm text-gray-400">
                   <a href="#how-it-works" className="hover:text-gold-400 transition-colors">How it Works</a>
-                  <a href="#performance" className="hover:text-gold-400 transition-colors">Performance</a>
+                  <Link to="/performance" className="hover:text-gold-400 transition-colors">Performance</Link>
                   <Link to="/support" className="hover:text-gold-400 transition-colors">Contact Support</Link>
                 </div>
               </div>
