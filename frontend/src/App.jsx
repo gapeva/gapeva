@@ -6,16 +6,12 @@ import Landing from './pages/Landing';
 import Support from './pages/Support'; 
 import Terms from './pages/Terms'; 
 import Privacy from './pages/Privacy'; 
+import Performance from './pages/Performance'; // <-- Import the new page
 
-// --- FIX: Define the ProtectedRoute Component ---
-// This checks if the user has a token. If not, it forces them to Login.
+// Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('access_token');
-  
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-
+  if (!token) return <Navigate to="/login" replace />;
   return children;
 };
 
@@ -23,14 +19,15 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes - Accessible by everyone */}
+        {/* Public Routes */}
         <Route path="/" element={<Landing />} />
+        <Route path="/performance" element={<Performance />} /> {/* <-- Add this route */}
         <Route path="/login" element={<Login />} />
         <Route path="/support" element={<Support />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
         
-        {/* Protected Routes - Only accessible if logged in */}
+        {/* Protected Routes */}
         <Route 
           path="/dashboard" 
           element={
