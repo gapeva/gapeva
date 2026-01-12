@@ -1,33 +1,46 @@
 import os
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.engine import make_url
 
-# 1. Get DB URL from Environment
+# 1. Get DB URL
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./gapeva.db")
 
-# 2. Configure connection arguments (default empty)
+# 2. Connection Args container
 connect_args = {}
 
-# 3. Fix for DigitalOcean & Asyncpg compatibility
-if "postgres" in DATABASE_URL:
-    # A. Ensure correct protocol for async driver (postgresql+asyncpg://)
-    if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
-    elif DATABASE_URL.startswith("postgresql://") and "+asyncpg" not in DATABASE_URL:
-        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+# 3. Robust Parsing Logic
+try:
+    # Use SQLAlchemy's built-in tool to parse the URL safely
+    url_obj = make_url(DATABASE_URL)
 
-    # B. Handle SSL Driver Conflict
-    # The 'psycopg2' driver (used by bot) NEEDS '?sslmode=require' in the URL.
-    # The 'asyncpg' driver (used here) CRASHES if it sees '?sslmode=require'.
-    # We strip it from the string and pass it as a strictly typed argument instead.
-    if "sslmode=" in DATABASE_URL:
-        DATABASE_URL = DATABASE_URL.replace("?sslmode=require", "").replace("&sslmode=require", "")
-        DATABASE_URL = DATABASE_URL.replace("?sslmode=prefer", "").replace("&sslmode=prefer", "")
+    # A. Fix Driver for Async (Postgres -> Postgres+Asyncpg)
+    if url_obj.drivername == "postgresql":
+        url_obj = url_obj._replace(drivername="postgresql+asyncpg")
+    
+    # B. Fix SSL Conflict (Asyncpg crashes if 'sslmode' is in the query params)
+    if "sslmode" in url_obj.query:
+        # Copy query params to a mutable dict
+        query_dict = dict(url_obj.query)
         
-        # Pass SSL requirement via connect_args for asyncpg
-        connect_args = {"ssl": "require"}
+        # If sslmode is on, tell asyncpg to use SSL via connect_args
+        if query_dict.get("sslmode") in ["require", "prefer"]:
+            connect_args = {"ssl": "require"}
+        
+        # Remove the offending parameter from the string
+        del query_dict["sslmode"]
+        
+        # Reconstruct the safe URL
+        url_obj = url_obj._replace(query=query_dict)
+    
+    # Generate the final string
+    DATABASE_URL = url_obj.render_as_string(hide_password=False)
 
-# 4. Create Engine with the fixed URL and arguments
+except Exception as e:
+    # Fallback for local SQLite or unexpected errors
+    print(f"⚠️ URL Parsing Warning: {e}")
+
+# 4. Create Engine
 engine = create_async_engine(
     DATABASE_URL, 
     echo=True, 
