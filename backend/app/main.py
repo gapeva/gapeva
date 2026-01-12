@@ -30,9 +30,11 @@ origins = [
     "http://localhost:3000",
 ]
 
-# 3. Combine them
 if allowed_origins_env:
-    origins.extend([origin.strip() for origin in allowed_origins_env.split(",")])
+    new_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
+    origins.extend(new_origins)
+
+print(f"✅ ALLOWED CORS ORIGINS: {origins}") # This helps verify it in your DO logs
 
 app.add_middleware(
     CORSMiddleware,
