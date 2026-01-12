@@ -53,7 +53,7 @@ const Login = () => {
       }
     } catch (err) {
       // Improved Error Handling
-      console.error("Signup Error:", err);
+      console.error("Signup/Login Error:", err);
       
       let message = "An error occurred. Please try again.";
       
@@ -66,11 +66,12 @@ const Login = () => {
               // If it's an array (e.g. password too short), grab the first message
               message = detail[0].msg || "Invalid input data";
           }
+      } else if (err.message === "Network Error") {
+          message = "Cannot connect to server. Please check your internet connection.";
       }
       
       setError(message);
     }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-navy-900 p-4">
