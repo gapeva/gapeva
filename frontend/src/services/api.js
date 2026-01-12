@@ -1,7 +1,20 @@
 import axios from 'axios';
 
-// 1. Dynamic Base URL
-const API_URL = import.meta.env.VITE_API_URL;
+// 1. Get URL from Environment
+let API_URL = import.meta.env.VITE_API_URL;
+
+// 2. Safety Check: If missing, warn the developer
+if (!API_URL) {
+    console.error("CRITICAL: VITE_API_URL is missing! Defaulting to localhost.");
+    API_URL = 'http://localhost:8000';
+}
+
+// 3. Clean the URL: Remove trailing slash if present (prevents //api)
+if (API_URL.endsWith('/')) {
+    API_URL = API_URL.slice(0, -1);
+}
+
+console.log("Connecting to Backend at:", API_URL); // Visible in Browser Console
 
 const api = axios.create({
   baseURL: API_URL,
@@ -10,7 +23,7 @@ const api = axios.create({
   },
 });
 
-// 2. Auth Token Interceptor (Keeps user logged in)
+// 4. Auth Token Interceptor
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');
   if (token) {
@@ -19,7 +32,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// 3. Auth Service with CORRECT PATHS (Added /api/v1)
+// 5. Export Services
 export const authService = {
   signup: (userData) => api.post('/api/v1/auth/signup', userData),
   
@@ -31,7 +44,6 @@ export const authService = {
   },
 };
 
-// 4. Wallet Service (Added /api/v1)
 export const walletService = {
   getWallets: () => api.get('/api/v1/wallets/'),
   createWallet: (walletData) => api.post('/api/v1/wallets/', walletData),
