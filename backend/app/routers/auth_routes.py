@@ -35,33 +35,27 @@ async def signup(user: schemas.UserCreate, db: AsyncSession = Depends(database.g
     await db.commit()
     await db.refresh(new_user)
 
-    # --- THE FIX IS HERE ---
-    # We explicitly combine the User data with the Wallet data
-    # so it matches the UserResponse schema.
+    # --- THE FIX: Explicitly map fields to match UserResponse Schema ---
     return {
         "id": new_user.id,
         "email": new_user.email,
         "full_name": new_user.full_name,
         "phone": new_user.phone,
         "is_active": new_user.is_active,
-        "wallet_balance": new_wallet.wallet_balance,   # Taking directly from new_wallet
-        "trading_balance": new_wallet.trading_balance  # Taking directly from new_wallet
+        "wallet_balance": new_wallet.wallet_balance,
+        "trading_balance": new_wallet.trading_balance
     }
 
+# ... (Keep the rest of the file, specifically the login function, as is)
 @router.post("/login", response_model=schemas.Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(database.get_db)):
-    # Find user
     result = await db.execute(select(models.User).where(models.User.email == form_data.username))
     user = result.scalars().first()
-
-    # Validate
     if not user or not auth.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
-    # Create Token
     access_token = auth.create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
