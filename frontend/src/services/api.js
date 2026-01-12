@@ -14,7 +14,7 @@ if (API_URL.endsWith('/')) {
     API_URL = API_URL.slice(0, -1);
 }
 
-console.log("Connecting to Backend at:", API_URL); // Visible in Browser Console
+console.log("Connecting to Backend at:", API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
