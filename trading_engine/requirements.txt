@@ -1,13 +1,10 @@
-# 1. Core Math (Pinned to prevent conflicts with Numpy 2.0)
-numpy<2.0.0
-
-# 2. Dataframes (Force binary version to avoid compilation errors)
+# 1. Core Data (Force Binary Pandas to prevent compile errors)
 pandas==2.2.3
 
-# 3. Technical Analysis (Install from ZIP URL to bypass Git errors)
-https://github.com/twopirllc/pandas-ta/archive/refs/heads/development.zip
+# 2. Technical Analysis (The new, maintained fork)
+pandas-ta-classic
 
-# 4. Trading & Database
+# 3. Trading & Infrastructure
 ccxt
 python-dotenv
 SQLAlchemy
