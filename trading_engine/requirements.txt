@@ -1,11 +1,11 @@
-# 1. Core Math (Pinned to prevent conflicts)
+# 1. Core Math (Pinned to prevent conflicts with Numpy 2.0)
 numpy<2.0.0
 
-# 2. Dataframes (Force specific binary version to avoid compiling)
+# 2. Dataframes (Force binary version to avoid compilation errors)
 pandas==2.2.3
 
-# 3. Technical Analysis (Install from Git to get Python 3.12 support)
-git+https://github.com/twopirllc/pandas-ta.git@development
+# 3. Technical Analysis (Install from ZIP URL to bypass Git errors)
+https://github.com/twopirllc/pandas-ta/archive/refs/heads/development.zip
 
 # 4. Trading & Database
 ccxt
