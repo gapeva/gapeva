@@ -52,8 +52,23 @@ const Login = () => {
         setIsLogin(true); // Switch back to login view
       }
     } catch (err) {
-      // If something goes wrong (e.g., wrong password), show the error
-      setError(err.response?.data?.detail || "An error occurred. Please try again.");
+      // Improved Error Handling
+      console.error("Signup Error:", err);
+      
+      let message = "An error occurred. Please try again.";
+      
+      // Check if the error detail is a simple string or an array (FastAPI validation)
+      if (err.response?.data?.detail) {
+          const detail = err.response.data.detail;
+          if (typeof detail === 'string') {
+              message = detail;
+          } else if (Array.isArray(detail)) {
+              // If it's an array (e.g. password too short), grab the first message
+              message = detail[0].msg || "Invalid input data";
+          }
+      }
+      
+      setError(message);
     }
   };
 
