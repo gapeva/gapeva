@@ -2,15 +2,18 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Copy requirements specific to the bot
-COPY requirements.txt .
+# 1. Install Bot Dependencies
+COPY trading_engine/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the bot code
-COPY . .
+# 2. Copy the TRADING ENGINE code
+COPY trading_engine/ /app/trading_engine/
 
-# We also need access to the backend models for the "Global Pool" check
-# In production, we might package shared code, but for now we mount/copy it.
-# (Note: In the Digital Ocean setup, we will handle pathing carefully)
+# 3. Copy the BACKEND code (So the bot can import 'backend.app...')
+COPY backend/ /app/backend/
 
-CMD ["python", "bot.py"]
+# 4. Set PYTHONPATH so python knows where to look
+ENV PYTHONPATH="${PYTHONPATH}:/app"
+
+# 5. Run the bot
+CMD ["python", "trading_engine/bot.py"]
