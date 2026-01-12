@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// 1. Dynamic Base URL (Keeps your previous fix)
+// 1. Dynamic Base URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
@@ -19,27 +19,26 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// 3. Auth Service with CORRECT PATHS
+// 3. Auth Service with CORRECT PATHS (Added /api/v1)
 export const authService = {
-  // FIX: Added '/api/v1' prefix to match backend/app/main.py
   signup: (userData) => api.post('/api/v1/auth/signup', userData),
   
   login: async (credentials) => {
-    // FastAPI OAuth2 expects form data for login
     const formData = new FormData();
     formData.append('username', credentials.email);
     formData.append('password', credentials.password);
-    
-    // FIX: Added '/api/v1' prefix
     return api.post('/api/v1/auth/login', formData);
   },
 };
 
-// 4. Wallet Service (Adding this so your Dashboard works later)
+// 4. Wallet Service (Added /api/v1)
 export const walletService = {
   getWallets: () => api.get('/api/v1/wallets/'),
   createWallet: (walletData) => api.post('/api/v1/wallets/', walletData),
+  validateDeposit: (data) => api.post('/api/v1/wallets/validate-deposit', data),
+  verifyDeposit: (data) => api.post('/api/v1/wallets/verify-deposit', data),
+  withdraw: (data) => api.post('/api/v1/wallets/withdraw', data),
+  getHistory: () => api.get('/api/v1/wallets/history'),
 };
 
 export default api;
-
