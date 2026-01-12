@@ -1,14 +1,18 @@
-# 1. Core Math (CRITICAL: Pin this to avoid Numpy 2.0 crashes)
+# 1. Core Math (Pinned to 1.x to prevent financial library crashes)
 numpy<2.0.0
 
-# 2. Dataframes (Force Binary to avoid build/compile errors)
+# 2. Dataframes (Pinned to Binary version to prevent compile errors)
 pandas==2.2.3
 
-# 3. Technical Analysis (Standard package works now because we pinned Numpy/Pandas!)
-pandas-ta
+# 3. Technical Analysis (Install Stable Version directly from Zip)
+# This bypasses PyPI dependency hell and git authentication errors
+https://github.com/twopirllc/pandas-ta/archive/refs/tags/0.3.14b.zip
 
 # 4. Trading & Infrastructure
 ccxt
 python-dotenv
 SQLAlchemy
 psycopg2-binary
+
+
+
