@@ -34,7 +34,19 @@ async def signup(user: schemas.UserCreate, db: AsyncSession = Depends(database.g
     
     await db.commit()
     await db.refresh(new_user)
-    return new_user
+
+    # --- THE FIX IS HERE ---
+    # We explicitly combine the User data with the Wallet data
+    # so it matches the UserResponse schema.
+    return {
+        "id": new_user.id,
+        "email": new_user.email,
+        "full_name": new_user.full_name,
+        "phone": new_user.phone,
+        "is_active": new_user.is_active,
+        "wallet_balance": new_wallet.wallet_balance,   # Taking directly from new_wallet
+        "trading_balance": new_wallet.trading_balance  # Taking directly from new_wallet
+    }
 
 @router.post("/login", response_model=schemas.Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(database.get_db)):
