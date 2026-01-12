@@ -23,6 +23,8 @@ app = FastAPI(
 origins = [
     "http://localhost:5173", # Vite Default Port
     "http://localhost:3000",
+    "https://gapeva.vercel.app",
+    #"https://gapeva.com"
 ]
 
 app.add_middleware(
