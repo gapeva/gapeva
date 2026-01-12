@@ -19,13 +19,17 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS Security: Allow Frontend to communicate
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
 origins = [
-    "http://localhost:5173", # Vite Default Port
+    "http://localhost:5173",
     "http://localhost:3000",
     "https://gapeva.vercel.app",
-    #"https://gapeva.com"
+    #"https://gapeva.com",
 ]
+# Allow dynamic origins from env
+if allowed_origins_env:
+    origins.extend([origin.strip() for origin in allowed_origins_env.split(",")])
+
 
 app.add_middleware(
     CORSMiddleware,
