@@ -1,7 +1,7 @@
-ccxt
+numpy<2.0.0
 pandas
 pandas-ta
+ccxt
 python-dotenv
 SQLAlchemy
 psycopg2-binary
-numpy
