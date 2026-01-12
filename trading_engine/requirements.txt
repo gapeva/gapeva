@@ -1,12 +1,14 @@
-# 1. Core Data (Force Binary Pandas to prevent compile errors)
+# 1. Core Math (CRITICAL: Pin this to avoid Numpy 2.0 crashes)
+numpy<2.0.0
+
+# 2. Dataframes (Force Binary to avoid build/compile errors)
 pandas==2.2.3
 
-# 2. Technical Analysis (The new, maintained fork)
-pandas-ta-classic
+# 3. Technical Analysis (Standard package works now because we pinned Numpy/Pandas!)
+pandas-ta
 
-# 3. Trading & Infrastructure
+# 4. Trading & Infrastructure
 ccxt
 python-dotenv
 SQLAlchemy
 psycopg2-binary
-
