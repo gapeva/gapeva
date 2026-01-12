@@ -1,14 +1,13 @@
-import os  # <--- CRITICAL FIX: Prevents "NameError: name 'os' is not defined"
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-# Only import routers that actually exist in your codebase
-from app.routers import auth_routes, wallet_routes 
+from app.routers import auth_routes, wallet_routes
 from app.database import engine, Base
-from app import models
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Create tables on startup
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
@@ -20,21 +19,26 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# --- DYNAMIC CORS CONFIGURATION ---
-# 1. Get origins from Environment Variable (Essential for Vercel)
+# --- ROBUST CORS CONFIGURATION (THE FIX) ---
+# 1. Get variable from Environment
 allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
 
-# 2. Default Localhost origins for development
+# 2. Hardcoded Localhost for Development
 origins = [
     "http://localhost:5173",
     "http://localhost:3000",
 ]
 
+# 3. Dynamic Parsing (Fixes trailing slashes/spaces automatically)
 if allowed_origins_env:
-    new_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
-    origins.extend(new_origins)
+    raw_origins = allowed_origins_env.split(",")
+    for origin in raw_origins:
+        # CRITICAL FIX: .strip() removes spaces, .rstrip("/") removes trailing slashes
+        clean_origin = origin.strip().rstrip("/") 
+        if clean_origin:
+            origins.append(clean_origin)
 
-print(f"✅ ALLOWED CORS ORIGINS: {origins}") # This helps verify it in your DO logs
+print(f"✅ FINAL CORS ORIGINS: {origins}") # Check this in Digital Ocean Runtime Logs!
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,7 +49,6 @@ app.add_middleware(
 )
 
 # --- ROUTERS ---
-# Note: Added /api/v1 prefix to standardise the API
 app.include_router(auth_routes.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(wallet_routes.router, prefix="/api/v1/wallets", tags=["Wallets"])
 
