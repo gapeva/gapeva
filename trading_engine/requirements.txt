@@ -1,16 +1,8 @@
-# 1. Core Math
-# Updated to allow Numpy 2.x, which is required by the new pandas-ta
 numpy>=2.0.0
-
-# 2. Dataframes
-# Updated to Pandas 2.2+ which supports Numpy 2.x
 pandas>=2.2.0
-
-# 3. Technical Analysis
 pandas-ta
-
-# 4. Trading & Infrastructure
 ccxt
 python-dotenv
 SQLAlchemy
 psycopg2-binary
+uvicorn
