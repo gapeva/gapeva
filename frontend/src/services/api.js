@@ -3,12 +3,6 @@ import axios from 'axios';
 // 1. Get URL from Environment
 let API_URL = import.meta.env.VITE_API_URL;
 
-// 2. Safety Check: If missing, warn the developer
-if (!API_URL) {
-    console.error("CRITICAL: VITE_API_URL is missing! Defaulting to localhost.");
-    API_URL = 'http://localhost:8000';
-}
-
 // 3. Clean the URL: Remove trailing slash if present (prevents //api)
 if (API_URL.endsWith('/')) {
     API_URL = API_URL.slice(0, -1);
