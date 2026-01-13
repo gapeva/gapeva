@@ -72,6 +72,7 @@ const Login = () => {
       
       setError(message);
     }
+  };  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-navy-900 p-4">
