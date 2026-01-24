@@ -4,21 +4,23 @@ import pandas_ta as ta
 import time
 import sys
 import os
+import requests
+import numpy as np
 from decimal import Decimal
 
 # --- PATH SETUP ---
-# This ensures the bot can find the backend files
+# CRITICAL: Allows the bot to see the 'backend' folder
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from trading_engine.risk_manager import RiskManager
+# CONNECT TO DATABASE: Fetches the total capital allocated by users
 from backend.app.services.pool_service import get_total_trading_pool
 
 class QuantitativeBot:
     def __init__(self):
-        # 1. Configuration
-        # In production, load these from an .env file!
-        self.api_key = "YOUR_BINANCE_API_KEY"
-        self.secret = "YOUR_BINANCE_SECRET"
+        # 1. API CONFIGURATION
+        self.api_key = os.getenv("BINANCE_API_KEY", "YOUR_KEY")
+        self.secret = os.getenv("BINANCE_SECRET", "YOUR_SECRET")
         
         self.exchange = ccxt.binance({
             'apiKey': self.api_key,
@@ -27,98 +29,181 @@ class QuantitativeBot:
             'options': {'defaultType': 'spot'} 
         })
         
+        # 2. STRATEGY SETTINGS (The "Apex" Config)
         self.symbol = 'BTC/USDT'
-        self.timeframe = '4h' 
-        
-        # 2. Initialize Risk Manager
+        self.timeframe = '1h'       # 1H gives cleaner signals than 15m
         self.risk_manager = RiskManager(self.exchange)
         
-        print("🤖 Gapeva Quantitative Agent: ONLINE")
+        # 3. STATE TRACKING
+        self.entry_price = 0.0
+        self.trailing_stop_price = 0.0
+        self.in_position = False
+        
+        print("🚀 Gapeva Tier-3 'Apex': INITIALIZED")
+        print("🔗 Database Link: CONNECTED")
+        print("🎯 Strategy: Trend Following + Dynamic ATR Trailing Stop")
+
+    def get_fundamentals(self):
+        """Fetches Fear & Greed but allows trading in High Greed (Momentum)"""
+        try:
+            url = "https://api.alternative.me/fng/?limit=1"
+            response = requests.get(url, timeout=5)
+            data = response.json()
+            value = int(data['data'][0]['value'])
+            return value
+        except:
+            return 50
 
     def fetch_data(self):
-        """Get market data for analysis"""
-        bars = self.exchange.fetch_ohlcv(self.symbol, timeframe=self.timeframe, limit=200)
-        df = pd.DataFrame(bars, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-        return df
-
-    def calculate_indicators(self, df):
-        """Apply the Phase 2 Strategy Logic"""
-        # Trend Indicators 
-        df['EMA_50'] = ta.ema(df['close'], length=50)
-        df['EMA_200'] = ta.ema(df['close'], length=200)
-        
-        # Momentum
-        df['RSI'] = ta.rsi(df['close'], length=14)
-        
-        # Volatility (for Stop Loss) [cite: 60]
-        df['ATR'] = ta.atr(df['high'], df['low'], df['close'], length=14)
-        return df
-
-    def execute_logic(self):
-        """The Main Decision Brain"""
-        
-        # A. SYNC GLOBAL POOL
-        # Get the total amount of money users have allocated
-        total_pool_usd = get_total_trading_pool()
-        
-        # Get current value of assets on Binance
+        """Fetches OHLCV and calculates Advanced Indicators"""
         try:
-            balance = self.exchange.fetch_balance()
-            total_equity = Decimal(str(balance['total']['USDT'])) + \
-                           (Decimal(str(balance['total']['BTC'])) * Decimal(str(self.exchange.fetch_ticker(self.symbol)['last'])))
+            bars = self.exchange.fetch_ohlcv(self.symbol, timeframe=self.timeframe, limit=200)
+            df = pd.DataFrame(bars, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+            
+            # --- INDICATORS ---
+            # 1. Trend: EMA 50 & 200
+            df['EMA_50'] = ta.ema(df['close'], length=50)
+            df['EMA_200'] = ta.ema(df['close'], length=200)
+            
+            # 2. Momentum: RSI & MACD
+            df['RSI'] = ta.rsi(df['close'], length=14)
+            macd = ta.macd(df['close'])
+            df['MACD'] = macd['MACD_12_26_9']
+            df['MACD_SIGNAL'] = macd['MACDs_12_26_9']
+            
+            # 3. Volatility: ATR (Average True Range) for Dynamic Stops
+            df['ATR'] = ta.atr(df['high'], df['low'], df['close'], length=14)
+            
+            # 4. Bollinger Bands (for Volatility Breakouts)
+            bb = ta.bbands(df['close'], length=20, std=2)
+            df['BB_UPPER'] = bb['BBU_20_2.0']
+            
+            return df
         except Exception as e:
-            print(f"⚠️ Exchange Connection Error: {e}")
+            print(f"⚠️ Data Error: {e}")
+            return pd.DataFrame()
+
+    def update_trailing_stop(self, current_price, atr):
+        """
+        Updates the Trailing Stop.
+        Moves UP only, never down. Locks in profit as price rises.
+        """
+        # Tight Stop: 2x ATR (Approx 2-3% wiggle room)
+        new_stop = current_price - (atr * 2.0)
+        
+        if new_stop > self.trailing_stop_price:
+            self.trailing_stop_price = new_stop
+            print(f"🛡️ Trailing Stop Moved Up: ${self.trailing_stop_price:.2f}")
+
+    def execute_strategy(self):
+        # A. SYNC MONEY (DATABASE + BINANCE)
+        try:
+            # 1. Get Reality (Binance)
+            balance = self.exchange.fetch_balance()
+            usdt = float(balance['total']['USDT'])
+            btc = float(balance['total']['BTC'])
+            ticker = self.exchange.fetch_ticker(self.symbol)
+            price = float(ticker['last'])
+            
+            # 2. Get Truth (Database)
+            # This connects to Gapeva DB to see how much users have deposited
+            db_pool_val = get_total_trading_pool() 
+            
+            # Calculate Total Equity
+            total_equity_val = Decimal(str(usdt)) + (Decimal(str(btc)) * Decimal(str(price)))
+            
+            # 3. Audit Log
+            print(f"\n--- 🏦 SOLVENCY CHECK ---")
+            print(f"👥 User Deposits (DB): ${db_pool_val:,.2f}")
+            print(f"📉 Binance Equity:     ${total_equity_val:,.2f}")
+            
+            # B. RISK CHECK (Panic Switch)
+            if self.risk_manager.check_panic_condition(total_equity_val):
+                self.risk_manager.trigger_emergency_sell()
+                self.in_position = False
+                return
+
+            if self.risk_manager.is_frozen:
+                print("❄️ FROZEN. Waiting for market to stabilize.")
+                return
+
+        except Exception as e:
+            print(f"Sync Error: {e}")
             return
 
-        print(f"\n--- CYCLE REPORT ---")
-        print(f"💰 Global User Pool: ${total_pool_usd} | 🏦 Binance Equity: ${total_equity:.2f}")
-
-        # B. RISK CHECK (Panic Switch) [cite: 61]
-        # We pass the real-time equity to the risk manager
-        if self.risk_manager.check_panic_condition(total_equity):
-            self.risk_manager.trigger_emergency_sell()
-            return # Stop here if panic triggered
-
-        if self.risk_manager.is_frozen:
-            print("❄️ Trading Frozen due to previous panic trigger.")
-            return
-
-        # C. MARKET ANALYSIS
+        # C. ANALYZE MARKET
         df = self.fetch_data()
-        df = self.calculate_indicators(df)
-        current = df.iloc[-1]
+        if df.empty: return
         
-        price = current['close']
-        rsi = current['RSI']
-        ema_50 = current['EMA_50']
-        ema_200 = current['EMA_200']
+        curr = df.iloc[-1]
+        fng = self.get_fundamentals()
         
-        # D. TRADING STRATEGY (EMA Cross + RSI Filter)
-        is_bullish = ema_50 > ema_200
-        is_momentum_safe = 40 < rsi < 70  # Avoid overbought/oversold extremes
+        # D. TRADING LOGIC (APEX STRATEGY)
         
-        # Log "Agent Thoughts"
-        print(f"🧠 Analysis: Price=${price} | Trend={'BULLISH' if is_bullish else 'BEARISH'} | RSI={rsi:.1f}")
+        # --- BUY CONDITIONS ---
+        bullish_trend = curr['EMA_50'] > curr['EMA_200']
+        momentum_up = curr['MACD'] > curr['MACD_SIGNAL']
+        safe_entry = curr['RSI'] < 75
+        volatility_breakout = curr['close'] > curr['BB_UPPER'] 
+        
+        buy_signal = (bullish_trend and momentum_up and safe_entry) or (volatility_breakout and momentum_up)
 
-        # (Here we would place orders. For safety in this phase, we just print the decision)
-        if is_bullish and is_momentum_safe:
-             print("✅ SIGNAL: BUY CONDITION MET. (Waiting for Phase 3 execution logic)")
-        elif not is_bullish:
-             print("🔻 SIGNAL: SELL/CASH CONDITION. Preservation mode.")
+        # --- SELL CONDITIONS ---
+        stop_hit = price < self.trailing_stop_price
+        trend_reversal = curr['EMA_50'] < curr['EMA_200']
+        momentum_crash = (curr['MACD'] < curr['MACD_SIGNAL']) and (curr['RSI'] > 75)
+        
+        sell_signal = stop_hit or trend_reversal or momentum_crash
+
+        # E. EXECUTION
+        print(f"📊 Price: ${price} | RSI: {curr['RSI']:.1f} | F&G: {fng} | Stop: ${self.trailing_stop_price:.2f}")
+
+        # ENTRY
+        if buy_signal and usdt > 5 and not self.in_position:
+            print("🟢 APEX BUY SIGNAL DETECTED")
+            qty = (usdt * 0.99) / price # Invest 99% of available USDT
+            try:
+                self.exchange.create_market_buy_order(self.symbol, qty)
+                self.in_position = True
+                self.entry_price = price
+                # Initialize Trailing Stop
+                self.trailing_stop_price = price - (curr['ATR'] * 2.0)
+                print(f"✅ BOUGHT at ${price}. Initial Stop: ${self.trailing_stop_price}")
+            except Exception as e:
+                print(f"❌ Buy Failed: {e}")
+
+        # MANAGEMENT / EXIT
+        elif self.in_position:
+            # Update Trailing Stop
+            if price > self.entry_price:
+                self.update_trailing_stop(price, curr['ATR'])
+            
+            # Check Exit
+            if sell_signal and btc > 0.0001:
+                print(f"🔴 EXIT SIGNAL (Stop Hit: {stop_hit}, Reversal: {trend_reversal})")
+                try:
+                    self.exchange.create_market_sell_order(self.symbol, btc)
+                    self.in_position = False
+                    self.trailing_stop_price = 0.0
+                    print(f"✅ SOLD at ${price}")
+                except Exception as e:
+                    print(f"❌ Sell Failed: {e}")
+        
+        else:
+            print("⏳ Scanning for High-Probability Setup...")
 
     def run(self):
         while True:
             try:
-                self.execute_logic()
-                # Run every 60 seconds
-                time.sleep(60)
+                self.execute_strategy()
+                time.sleep(15) # 15s Pulse
             except KeyboardInterrupt:
-                print("🛑 Bot stopped manually.")
+                print("🛑 Bot Stopped by User")
                 break
             except Exception as e:
                 print(f"⚠️ Critical Loop Error: {e}")
-                time.sleep(10)
+                time.sleep(30)
 
 if __name__ == "__main__":
     bot = QuantitativeBot()
