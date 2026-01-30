@@ -1,11 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from fastapi.security import OAuth2PasswordRequestForm
 from app import schemas, models, auth, database
 
 router = APIRouter(tags=["Authentication"])
 
+# -------------------------------
+# Pydantic schema for login JSON
+# -------------------------------
+from pydantic import BaseModel
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+# -------------------------------
+# SIGNUP
+# -------------------------------
 @router.post("/signup", response_model=schemas.UserResponse)
 async def signup(user: schemas.UserCreate, db: AsyncSession = Depends(database.get_db)):
     # 1. Check if email exists
@@ -13,7 +24,7 @@ async def signup(user: schemas.UserCreate, db: AsyncSession = Depends(database.g
     if result.scalars().first():
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    # 2. Create User
+    # 2. Hash password and create User
     hashed_password = auth.get_password_hash(user.password)
     new_user = models.User(
         email=user.email,
@@ -22,9 +33,9 @@ async def signup(user: schemas.UserCreate, db: AsyncSession = Depends(database.g
         hashed_password=hashed_password
     )
     db.add(new_user)
-    await db.flush() # Flush to get the new_user.id for the wallet
+    await db.flush()  # flush to get new_user.id for wallet
 
-    # 3. Initialize the Dual-Balance Wallet (Ledger)
+    # 3. Initialize Dual-Balance Wallet
     new_wallet = models.Wallet(
         user_id=new_user.id,
         wallet_balance=0.00,
@@ -35,7 +46,7 @@ async def signup(user: schemas.UserCreate, db: AsyncSession = Depends(database.g
     await db.commit()
     await db.refresh(new_user)
 
-    # --- THE FIX: Explicitly map fields to match UserResponse Schema ---
+    # Return mapped fields for UserResponse
     return {
         "id": new_user.id,
         "email": new_user.email,
@@ -46,16 +57,23 @@ async def signup(user: schemas.UserCreate, db: AsyncSession = Depends(database.g
         "trading_balance": new_wallet.trading_balance
     }
 
-# ... (Keep the rest of the file, specifically the login function, as is)
+# -------------------------------
+# LOGIN (JSON payload)
+# -------------------------------
 @router.post("/login", response_model=schemas.Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(database.get_db)):
-    result = await db.execute(select(models.User).where(models.User.email == form_data.username))
-    user = result.scalars().first()
-    if not user or not auth.verify_password(form_data.password, user.hashed_password):
+async def login(user: LoginRequest, db: AsyncSession = Depends(database.get_db)):
+    # 1. Lookup user by email
+    result = await db.execute(select(models.User).where(models.User.email == user.email))
+    db_user = result.scalars().first()
+
+    # 2. Verify password
+    if not db_user or not auth.verify_password(user.password, db_user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = auth.create_access_token(data={"sub": user.email})
+
+    # 3. Generate access token
+    access_token = auth.create_access_token(data={"sub": db_user.email})
     return {"access_token": access_token, "token_type": "bearer"}

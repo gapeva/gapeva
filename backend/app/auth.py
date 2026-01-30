@@ -8,10 +8,12 @@ from app.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from app import models
 
-# SECRET_KEY should be in an .env file for production!
-SECRET_KEY = "CHANGE_THIS_TO_A_LONG_SECURE_STRING_IN_PROD" 
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+import os 
+
+# SECRET_KEY loaded from environment variable (security fix)
+SECRET_KEY = os.getenv("SECRET_KEY", "CHANGE_THIS_TO_A_LONG_SECURE_STRING_IN_PROD")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
 
 # Using Argon2 for "Elite" security as per standards
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")

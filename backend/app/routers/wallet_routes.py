@@ -1,7 +1,7 @@
 import httpx 
 import os
 import time
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -22,6 +22,29 @@ class PaymentVerification(BaseModel):
 
 class WithdrawalRequest(BaseModel):
     amount: Decimal = Field(..., gt=0, decimal_places=2)
+
+class AllocationRequest(BaseModel):
+    amount: Decimal = Field(..., gt=0, decimal_places=2)
+
+@router.get("/")
+async def get_wallet(
+    db: AsyncSession = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """
+    Fetch the current user's wallet balances.
+    """
+    result = await db.execute(select(models.Wallet).where(models.Wallet.user_id == current_user.id))
+    wallet = result.scalars().first()
+    
+    if not wallet:
+        # Create wallet if it doesn't exist yet
+        wallet = models.Wallet(user_id=current_user.id, wallet_balance=0.00, trading_balance=0.00)
+        db.add(wallet)
+        await db.commit()
+        await db.refresh(wallet)
+        
+    return wallet
 
 @router.post("/validate-deposit")
 async def validate_deposit_intent(
@@ -166,3 +189,51 @@ async def get_transaction_history(
     )
     txns = result.scalars().all()
     return txns
+
+@router.post("/allocate")
+async def allocate_funds(
+    req: AllocationRequest,
+    db: AsyncSession = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """
+    Move funds from Wallet Balance (Safe) to Trading Balance (Risk).
+    """
+    result = await db.execute(select(models.Wallet).where(models.Wallet.user_id == current_user.id))
+    wallet = result.scalars().first()
+
+    if not wallet or wallet.wallet_balance < req.amount:
+        raise HTTPException(status_code=400, detail="Insufficient funds in Safe Wallet")
+
+    wallet.wallet_balance -= req.amount
+    wallet.trading_balance += req.amount
+    
+    # Log it
+    memo = f"Allocated to Trading Strategy"
+    # Ideally logging this as a transaction too, simplified for now
+    
+    await db.commit()
+    await db.refresh(wallet)
+    return {"status": "success", "wallet_balance": wallet.wallet_balance, "trading_balance": wallet.trading_balance}
+
+@router.post("/deallocate")
+async def deallocate_funds(
+    req: AllocationRequest,
+    db: AsyncSession = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """
+    Move funds from Trading Balance (Risk) to Wallet Balance (Safe).
+    """
+    result = await db.execute(select(models.Wallet).where(models.Wallet.user_id == current_user.id))
+    wallet = result.scalars().first()
+
+    if not wallet or wallet.trading_balance < req.amount:
+        raise HTTPException(status_code=400, detail="Insufficient funds in Trading Account")
+
+    wallet.trading_balance -= req.amount
+    wallet.wallet_balance += req.amount
+    
+    await db.commit()
+    await db.refresh(wallet)
+    return {"status": "success", "wallet_balance": wallet.wallet_balance, "trading_balance": wallet.trading_balance}

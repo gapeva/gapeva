@@ -1,0 +1,22 @@
+nohup: ignoring input
+INFO:     Will watch for changes in these directories: ['/home/marktony/Development/code/se-prep/gapeva/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [26026] using StatReload
+INFO:     Started server process [26029]
+INFO:     Waiting for application startup.
+✅ FINAL CORS ORIGINS: ['http://localhost:5173', 'http://localhost:3000']
+2026-01-25 12:38:35,580 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-25 12:38:35,580 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("users")
+2026-01-25 12:38:35,580 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-25 12:38:35,581 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("wallets")
+2026-01-25 12:38:35,581 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-25 12:38:35,581 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("transactions")
+2026-01-25 12:38:35,581 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-25 12:38:35,582 INFO sqlalchemy.engine.Engine COMMIT
+INFO:     Application startup complete.
+INFO:     127.0.0.1:47668 - "GET / HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [26029]
+INFO:     Stopping reloader process [26026]

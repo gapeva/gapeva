@@ -47,6 +47,7 @@ class Transaction(Base):
     amount = Column(Numeric(18, 2), nullable=False)
     status = Column(String, default="pending") # pending, success, failed
     type = Column(String, default="deposit")
+    payment_method = Column(String, default="paystack") # paystack
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User")

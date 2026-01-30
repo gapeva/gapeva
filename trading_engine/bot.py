@@ -1,10 +1,17 @@
 import ccxt
 import pandas as pd
-import pandas_ta as ta
+# import pandas_ta as ta (Removed)
+from ta.trend import EMAIndicator
+from ta.momentum import RSIIndicator
+from ta.volatility import AverageTrueRange
 import time
 import sys
 import os
 from decimal import Decimal
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # --- PATH SETUP ---
 # This ensures the bot can find the backend files
@@ -16,9 +23,14 @@ from backend.app.services.pool_service import get_total_trading_pool
 class QuantitativeBot:
     def __init__(self):
         # 1. Configuration
-        # In production, load these from an .env file!
-        self.api_key = "YOUR_BINANCE_API_KEY"
-        self.secret = "YOUR_BINANCE_SECRET"
+        # 1. Configuration
+        # Load keys from environment variables
+        self.api_key = os.getenv("BINANCE_API_KEY")
+        self.secret = os.getenv("BINANCE_SECRET_KEY")
+        
+        if not self.api_key or not self.secret:
+            print("❌ Error: Binance API Creditentials not found in environment variables.")
+            return
         
         self.exchange = ccxt.binance({
             'apiKey': self.api_key,
@@ -26,6 +38,8 @@ class QuantitativeBot:
             'enableRateLimit': True,
             'options': {'defaultType': 'spot'} 
         })
+        
+        # self.exchange.set_sandbox_mode(True) # Disabled: Keys appear to be Mainnet (Signature Invalid on Mainnet vs Invalid Key on Testnet)
         
         self.symbol = 'BTC/USDT'
         self.timeframe = '4h' 
@@ -45,14 +59,14 @@ class QuantitativeBot:
     def calculate_indicators(self, df):
         """Apply the Phase 2 Strategy Logic"""
         # Trend Indicators 
-        df['EMA_50'] = ta.ema(df['close'], length=50)
-        df['EMA_200'] = ta.ema(df['close'], length=200)
+        df['EMA_50'] = EMAIndicator(close=df['close'], window=50).ema_indicator()
+        df['EMA_200'] = EMAIndicator(close=df['close'], window=200).ema_indicator()
         
         # Momentum
-        df['RSI'] = ta.rsi(df['close'], length=14)
+        df['RSI'] = RSIIndicator(close=df['close'], window=14).rsi()
         
         # Volatility (for Stop Loss) [cite: 60]
-        df['ATR'] = ta.atr(df['high'], df['low'], df['close'], length=14)
+        df['ATR'] = AverageTrueRange(high=df['high'], low=df['low'], close=df['close'], window=14).average_true_range()
         return df
 
     def execute_logic(self):
