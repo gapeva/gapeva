@@ -27,6 +27,7 @@ api.interceptors.request.use((config) => {
 });
 
 // 5. Export Services
+// 5. Export Services
 export const authService = {
   signup: (userData) => api.post('/api/v1/auth/signup', userData),
 
@@ -36,6 +37,12 @@ export const authService = {
       password: credentials.password
     });
   },
+};
+
+export const userService = {
+  getProfile: () => api.get('/api/v1/users/me'),
+  updateProfile: (data) => api.put('/api/v1/users/me', data),
+  updatePassword: (data) => api.put('/api/v1/users/password', data),
 };
 
 export const walletService = {

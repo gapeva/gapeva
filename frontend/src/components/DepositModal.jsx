@@ -25,7 +25,10 @@ const DepositModal = ({ isOpen, onClose, userEmail, userPhone, onSuccess }) => {
     setProcessing(true);
     try {
       const { walletService } = await import('../services/api');
-      await walletService.verifyDeposit({ reference: reference.reference });
+      await walletService.verifyDeposit({
+        reference: reference.reference,
+        amount: amount // Sending amount to backend for immediate verification
+      });
       alert("Deposit Verified! Funds added to wallet.");
       onSuccess();
       onClose();

@@ -8,6 +8,8 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Performance from './pages/Performance'; // <-- Import the new page
+import Wallet from './pages/Wallet';
+import LiveTrading from './pages/LiveTrading';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -34,6 +36,22 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/wallet"
+          element={
+            <ProtectedRoute>
+              <Wallet />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/trading"
+          element={
+            <ProtectedRoute>
+              <LiveTrading />
             </ProtectedRoute>
           }
         />

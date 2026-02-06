@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
-import DepositModal from '../components/DepositModal';
 import AllocationModal from '../components/AllocationModal';
-import WithdrawModal from '../components/WithdrawModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { PlusCircle, ArrowRightLeft, MinusCircle } from 'lucide-react';
+import { ArrowRightLeft } from 'lucide-react';
 import { walletService } from '../services/api';
 
 // Mock Data for the chart (Will be replaced by API data later)
@@ -20,9 +18,7 @@ const data = [
 
 const Dashboard = () => {
     // State
-    const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
     const [isAllocModalOpen, setIsAllocModalOpen] = useState(false);
-    const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
     const [walletBalance, setWalletBalance] = useState(0.00);
     const [tradingBalance, setTradingBalance] = useState(0.00);
@@ -71,22 +67,6 @@ const Dashboard = () => {
                             <h3 className="text-4xl font-serif text-white tracking-tight">
                                 ${walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </h3>
-                        </div>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setIsDepositModalOpen(true)}
-                                className="bg-navy-900/80 p-2.5 rounded-xl text-gold-400 border border-gold-400/20 hover:bg-gold-400 hover:text-navy-900 transition-all duration-300 shadow-lg"
-                                title="Deposit"
-                            >
-                                <PlusCircle size={20} />
-                            </button>
-                            <button
-                                onClick={() => setIsWithdrawModalOpen(true)}
-                                className="bg-navy-900/80 p-2.5 rounded-xl text-gray-400 border border-gray-800 hover:border-red-400/50 hover:text-red-400 transition-all duration-300 shadow-lg"
-                                title="Withdraw"
-                            >
-                                <MinusCircle size={20} />
-                            </button>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 mt-4 relative z-10">
@@ -206,26 +186,11 @@ const Dashboard = () => {
             </div>
 
             {/* Modals */}
-            <DepositModal
-                isOpen={isDepositModalOpen}
-                onClose={() => setIsDepositModalOpen(false)}
-                userEmail={userEmail}
-                userPhone={userPhone}
-                onSuccess={fetchWallet}
-            />
-
             <AllocationModal
                 isOpen={isAllocModalOpen}
                 onClose={() => setIsAllocModalOpen(false)}
                 onSuccess={fetchWallet}
                 maxBalance={walletBalance} // Simplified: passing wallet balance. In modal we can handle switching max.
-            />
-
-            <WithdrawModal
-                isOpen={isWithdrawModalOpen}
-                onClose={() => setIsWithdrawModalOpen(false)}
-                onSuccess={fetchWallet}
-                maxBalance={walletBalance}
             />
 
         </DashboardLayout>

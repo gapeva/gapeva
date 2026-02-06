@@ -13,14 +13,14 @@ const DashboardLayout = ({ children }) => {
 
   const currentPath = window.location.pathname;
 
-  const NavItem = ({ icon: Icon, label, path }) => {
-    const isActive = currentPath === path;
+  const NavItem = ({ icon: Icon, label, path, activeMatch }) => {
+    const isActive = activeMatch ? currentPath.startsWith(path) : currentPath === path;
     return (
       <div
         onClick={() => navigate(path)}
         className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all duration-500 group relative ${isActive
-            ? 'bg-gold-400 text-navy-900 font-bold gold-glow'
-            : 'text-gray-400 hover:text-white hover:bg-gold-400/5 hover:border-r-2 hover:border-gold-400/50'
+          ? 'bg-gold-400 text-navy-900 font-bold gold-glow'
+          : 'text-gray-400 hover:text-white hover:bg-gold-400/5 hover:border-r-2 hover:border-gold-400/50'
           }`}
       >
         <Icon size={18} className={`${isActive ? 'text-navy-900' : 'group-hover:text-gold-400 transition-colors'}`} />
@@ -49,8 +49,8 @@ const DashboardLayout = ({ children }) => {
 
       <div className="space-y-3 flex-1">
         <NavItem icon={LayoutDashboard} label="OVERVIEW" path="/dashboard" />
-        <NavItem icon={Wallet} label="DEPOSIT / WITHDRAW" path="/dashboard" />
-        <NavItem icon={TrendingUp} label="LIVE TRADING" path="/dashboard" />
+        <NavItem icon={Wallet} label="DEPOSIT / WITHDRAW" path="/wallet" />
+        <NavItem icon={TrendingUp} label="LIVE TRADING" path="/trading" />
         <NavItem icon={Settings} label="SETTINGS" path="/settings" />
       </div>
 

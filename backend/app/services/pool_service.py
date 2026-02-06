@@ -6,11 +6,14 @@ from decimal import Decimal
 # 1. Get the same DATABASE_URL
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./gapeva.db")
 
-# 2. Fix for Sync Connection: We need "postgresql://" (not asyncpg)
-#    If the URL has "+asyncpg", we remove it for this specific file.
+# 2. Fix for Sync Connection
+#    If the URL has "+asyncpg" or "+aiosqlite", we remove it for this specific file.
 if "+asyncpg" in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.replace("+asyncpg", "")
-#    Ensure it starts with postgresql://
+if "+aiosqlite" in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace("+aiosqlite", "")
+
+#    Ensure it starts with postgresql:// if using postgres
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 

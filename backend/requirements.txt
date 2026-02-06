@@ -11,3 +11,4 @@ email-validator
 httpx
 aiosqlite
 python-dotenv
+argon2-cffi
