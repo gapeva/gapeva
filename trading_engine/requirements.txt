@@ -1,8 +1,11 @@
-numpy<2.0.0
-pandas<2.0.0
-ta
 ccxt
+pandas
+numpy
+sqlalchemy
 python-dotenv
+schedule
+textblob
+ta
 SQLAlchemy
 psycopg2-binary
 uvicorn

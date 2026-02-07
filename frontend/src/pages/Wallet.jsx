@@ -1,16 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import DepositModal from '../components/DepositModal';
 import WithdrawModal from '../components/WithdrawModal';
-import { Wallet, ArrowDownCircle, ArrowUpCircle, History, CreditCard } from 'lucide-react';
+import { Wallet, ArrowDownCircle, ArrowUpCircle, History, CreditCard, Loader2 } from 'lucide-react';
+import { userService, walletService } from '../services/api';
 
 const WalletPage = () => {
     const [activeTab, setActiveTab] = useState('deposit');
     const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+    
+    // State for user data
+    const [userProfile, setUserProfile] = useState(null);
+    const [walletBalance, setWalletBalance] = useState(0.00);
+    const [loading, setLoading] = useState(true);
 
-    // Mock wallet data (replace with actual hook or context later)
-    const walletBalance = 0.00;
+    // Fetch User Profile & Balance on Mount
+    useEffect(() => {
+        const fetchDetails = async () => {
+            try {
+                // 1. Get User Profile (for Email)
+                const userRes = await userService.getProfile();
+                setUserProfile(userRes.data);
+
+                // 2. Get Wallet Balance (Optional: if you have this endpoint ready)
+                // const walletRes = await walletService.getWallets();
+                // setWalletBalance(walletRes.data.balance || 0); 
+            } catch (error) {
+                console.error("Error loading wallet details:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDetails();
+    }, []);
+
+    const handleDepositSuccess = () => {
+        alert("Deposit successful! Refreshing balance...");
+        setIsDepositModalOpen(false);
+        // Optionally reload balance here
+        window.location.reload(); 
+    };
+
+    if (loading) {
+        return (
+            <DashboardLayout>
+                <div className="flex items-center justify-center h-screen">
+                    <Loader2 className="animate-spin text-gold-400" size={40} />
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     return (
         <DashboardLayout>
@@ -74,8 +115,8 @@ const WalletPage = () => {
                                                 <CreditCard className="text-gray-400 group-hover:text-gold-400 transition-colors" size={24} />
                                                 <span className="bg-green-500/10 text-green-500 text-[10px] font-bold px-2 py-1 rounded">INSTANT</span>
                                             </div>
-                                            <h4 className="text-lg text-white font-serif mb-1">M-Pesa Express</h4>
-                                            <p className="text-xs text-gray-500 leading-relaxed">Direct mobile money integration. Zero processing fees for institutional tiers.</p>
+                                            <h4 className="text-lg text-white font-serif mb-1">Paystack / Card</h4>
+                                            <p className="text-xs text-gray-500 leading-relaxed">Direct mobile money & Card integration. Zero processing fees.</p>
                                         </div>
 
                                         <div className="p-6 rounded-2xl bg-navy-900/20 border border-gray-800/50 opacity-60 cursor-not-allowed">
@@ -146,11 +187,16 @@ const WalletPage = () => {
                 </div>
 
                 {/* Integration with Original Modals */}
-                <DepositModal
-                    isOpen={isDepositModalOpen}
-                    onClose={() => setIsDepositModalOpen(false)}
-                // Pass props as needed, or fetch inside modal
-                />
+                {/* We only render the modal if we have user data to prevent errors */}
+                {userProfile && (
+                    <DepositModal
+                        isOpen={isDepositModalOpen}
+                        onClose={() => setIsDepositModalOpen(false)}
+                        userEmail={userProfile.email}
+                        userPhone={userProfile.phone}
+                        onSuccess={handleDepositSuccess}
+                    />
+                )}
 
                 <WithdrawModal
                     isOpen={isWithdrawModalOpen}
