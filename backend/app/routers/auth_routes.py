@@ -2,14 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app import schemas, models, auth, database
+from pydantic import BaseModel
 
 router = APIRouter(tags=["Authentication"])
 
 # -------------------------------
 # Pydantic schema for login JSON
 # -------------------------------
-from pydantic import BaseModel
-
 class LoginRequest(BaseModel):
     email: str
     password: str
@@ -77,3 +76,29 @@ async def login(user: LoginRequest, db: AsyncSession = Depends(database.get_db))
     # 3. Generate access token
     access_token = auth.create_access_token(data={"sub": db_user.email})
     return {"access_token": access_token, "token_type": "bearer"}
+
+# -------------------------------
+# GET CURRENT USER PROFILE (THE FIX)
+# -------------------------------
+@router.get("/me", response_model=schemas.UserResponse)
+async def read_users_me(
+    current_user: models.User = Depends(auth.get_current_user),
+    db: AsyncSession = Depends(database.get_db)
+):
+    """
+    Fetch the current authenticated user + their wallet balance.
+    """
+    # 1. Fetch the user's wallet
+    result = await db.execute(select(models.Wallet).where(models.Wallet.user_id == current_user.id))
+    wallet = result.scalars().first()
+
+    # 2. Return combined data
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "phone": current_user.phone,
+        "is_active": current_user.is_active,
+        "wallet_balance": wallet.wallet_balance if wallet else 0.00,
+        "trading_balance": wallet.trading_balance if wallet else 0.00
+    }

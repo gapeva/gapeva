@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { PaystackButton } from 'react-paystack';
-import api from '../services/api';
+import { usePaystackPayment } from 'react-paystack'; // ✅ Use Hook instead of Button
+import { walletService } from '../services/api';
 import { X, CreditCard, ShieldCheck, Loader2 } from 'lucide-react';
 
 const DepositModal = ({ isOpen, onClose, userEmail, userPhone, onSuccess }) => {
@@ -15,23 +15,33 @@ const DepositModal = ({ isOpen, onClose, userEmail, userPhone, onSuccess }) => {
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
-  // Paystack configuration
+  // Paystack Configuration
   const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
-  const amountInCents = amount * 100;
+  
+  // ✅ Safety Check: Ensure amount is a number and convert to cents (kobo)
+  const safeAmount = amount ? parseFloat(amount) * 100 : 0;
+
+  const config = {
+    reference: (new Date()).getTime().toString(),
+    email: userEmail,
+    amount: safeAmount, 
+    publicKey: publicKey,
+  };
+
+  // ✅ Initialize Hook
+  const initializePayment = usePaystackPayment(config);
 
   const handlePaystackSuccess = async (reference) => {
     setProcessing(true);
     try {
-      const { walletService } = await import('../services/api');
+      // Call backend to verify
       await walletService.verifyDeposit({
         reference: reference.reference,
-        amount: amount // Sending amount to backend for immediate verification
+        amount: amount 
       });
       alert("Deposit Verified! Funds added to wallet.");
-      onSuccess();
-      onClose();
+      onSuccess(); // Update parent state
+      onClose();   // Close modal
     } catch (error) {
       alert("Verification failed. Please contact support.");
       console.error(error);
@@ -40,14 +50,23 @@ const DepositModal = ({ isOpen, onClose, userEmail, userPhone, onSuccess }) => {
     }
   };
 
-  const paystackComponentProps = {
-    email: userEmail,
-    amount: amountInCents,
-    publicKey,
-    text: "Confirm Deposit",
-    onSuccess: handlePaystackSuccess,
-    onClose: () => alert("Transaction cancelled"),
+  const handlePaystackClose = () => {
+    console.log("Transaction cancelled");
   };
+
+  const handlePayClick = () => {
+      if (!publicKey) {
+          alert("System Error: Paystack Public Key is missing.");
+          return;
+      }
+      // Trigger the Paystack Popup manually
+      initializePayment({
+          onSuccess: handlePaystackSuccess,
+          onClose: handlePaystackClose
+      });
+  };
+
+  if (!isOpen) return null;
 
   const isValidAmount = parseFloat(amount) >= 3;
 
@@ -72,7 +91,7 @@ const DepositModal = ({ isOpen, onClose, userEmail, userPhone, onSuccess }) => {
             </p>
           </div>
 
-          {/* Payment Method - Fixed to Paystack */}
+          {/* Payment Method */}
           <div>
             <label className="block text-gray-400 text-sm mb-3">Payment Method</label>
             <div className="grid grid-cols-1">
@@ -111,9 +130,12 @@ const DepositModal = ({ isOpen, onClose, userEmail, userPhone, onSuccess }) => {
                 Processing...
               </button>
             ) : isValidAmount ? (
-              <div className="w-full bg-gold-400 hover:bg-gold-500 text-navy-900 font-bold py-4 rounded-lg transition-colors flex justify-center cursor-pointer">
-                <PaystackButton {...paystackComponentProps} className="w-full h-full" />
-              </div>
+              <button 
+                onClick={handlePayClick}
+                className="w-full bg-gold-400 hover:bg-gold-500 text-navy-900 font-bold py-4 rounded-lg transition-colors shadow-lg hover:shadow-gold-400/20"
+              >
+                Confirm Deposit
+              </button>
             ) : (
               <button disabled className="w-full bg-gray-700 text-gray-500 font-bold py-4 rounded-lg cursor-not-allowed">
                 Enter Amount ($3.00+)
