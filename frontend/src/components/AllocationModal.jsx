@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { walletService } from '../services/api';
-import { X, ArrowRightLeft } from 'lucide-react';
+import { X, ArrowRightLeft, ShieldCheck, ChevronRight, Loader2 } from 'lucide-react';
 
 const AllocationModal = ({ isOpen, onClose, onSuccess, maxBalance }) => {
     const [amount, setAmount] = useState('');
@@ -31,64 +31,77 @@ const AllocationModal = ({ isOpen, onClose, onSuccess, maxBalance }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="bg-navy-800 w-full max-w-md rounded-2xl border border-gray-700 shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+            <div className="bg-navy-900 w-full max-w-md rounded-3xl border border-gold-400/20 shadow-[0_0_50px_rgba(212,175,55,0.1)] overflow-hidden">
 
                 {/* Header */}
-                <div className="bg-navy-900 p-6 flex justify-between items-center border-b border-white/5">
-                    <h3 className="font-serif text-xl text-white">Manage Capital</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-white">
+                <div className="p-6 flex justify-between items-center border-b border-white/5">
+                    <h3 className="font-serif text-xl gold-gradient-text italic">Capital Deployment</h3>
+                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
                         <X size={24} />
                     </button>
                 </div>
 
                 {/* Body */}
-                <div className="p-6 space-y-6">
-                    <div className="flex gap-2 bg-navy-900 p-1 rounded-lg">
+                <div className="p-8 space-y-8">
+                    {/* Direction Toggle */}
+                    <div className="flex gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner">
                         <button
                             onClick={() => setDirection('to_trading')}
-                            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${direction === 'to_trading' ? 'bg-gold-400 text-navy-900' : 'text-gray-400 hover:text-white'}`}
+                            className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${direction === 'to_trading' ? 'bg-gold-400 text-navy-900 shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
                         >
-                            To Trading
+                            Deploy to AI
                         </button>
                         <button
                             onClick={() => setDirection('to_wallet')}
-                            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${direction === 'to_wallet' ? 'bg-gold-400 text-navy-900' : 'text-gray-400 hover:text-white'}`}
+                            className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${direction === 'to_wallet' ? 'bg-gold-400 text-navy-900 shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
                         >
-                            To Wallet
+                            Recall to Safe
                         </button>
                     </div>
 
-                    <div className="bg-blue-900/20 p-4 rounded-lg flex items-start gap-3 border border-blue-500/20">
-                        <ArrowRightLeft className="text-blue-400 shrink-0" size={24} />
-                        <p className="text-sm text-blue-200">
+                    <div className="bg-gold-400/5 p-4 rounded-2xl flex items-start gap-3 border border-gold-400/10">
+                        <ShieldCheck className="text-gold-400 shrink-0" size={20} />
+                        <p className="text-[10px] text-gray-400 leading-relaxed uppercase tracking-wider">
                             {direction === 'to_trading'
-                                ? "Move funds from Safe Wallet to Trading Bot. Capital is at risk."
-                                : "Move profits/capital from Trading Bot to Safe Wallet."}
+                                ? "Authorizing deployment of liquid capital to active trading neural networks. Capital is at risk."
+                                : "Requesting immediate recall of active capital to institutional-grade safe reserve."}
                         </p>
                     </div>
 
-                    <div>
-                        <label className="block text-gray-400 text-sm mb-2">Amount (USD)</label>
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-end">
+                            <label className="block text-gray-500 text-[10px] uppercase tracking-widest font-bold">Allocation Amount</label>
+                            <span className="text-[10px] text-gray-600">Limit: ${maxBalance.toLocaleString()}</span>
+                        </div>
                         <div className="relative">
-                            <span className="absolute left-4 top-3.5 text-gray-500">$</span>
+                            <span className="absolute left-5 top-4.5 text-gold-400 font-serif">$</span>
                             <input
                                 type="number"
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
-                                className="w-full bg-navy-900 border border-gray-700 rounded-lg py-3 pl-8 pr-4 text-white focus:border-gold-400 focus:outline-none"
+                                className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-10 pr-5 text-white focus:border-gold-400/50 focus:outline-none transition-all placeholder:text-gray-800 font-serif text-xl"
                                 placeholder="0.00"
                             />
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">Available to move: ${maxBalance}</p>
                     </div>
 
                     <button
                         onClick={handleTransfer}
-                        disabled={loading}
-                        className="w-full bg-white hover:bg-gray-200 text-navy-900 font-bold py-4 rounded-lg transition-colors flex justify-center cursor-pointer disabled:opacity-50"
+                        disabled={loading || !amount || parseFloat(amount) <= 0}
+                        className={`w-full py-5 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${!loading && amount && parseFloat(amount) > 0
+                                ? 'bg-white text-navy-900 shadow-xl hover:scale-[1.02]'
+                                : 'bg-white/5 text-gray-600 cursor-not-allowed'
+                            }`}
                     >
-                        {loading ? "Processing..." : "Confirm Transfer"}
+                        {loading ? (
+                            <Loader2 className="animate-spin" size={20} />
+                        ) : (
+                            <>
+                                <span>Execute {direction === 'to_trading' ? 'Deployment' : 'Recall'}</span>
+                                <ChevronRight size={18} />
+                            </>
+                        )}
                     </button>
                 </div>
             </div>

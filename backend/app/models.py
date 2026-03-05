@@ -51,3 +51,9 @@ class Transaction(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User")
+
+    # M-Pesa Specific Fields
+    checkout_request_id = Column(String, nullable=True, index=True)
+    merchant_request_id = Column(String, nullable=True)
+    mpesa_receipt_number = Column(String, nullable=True)
+    phone_number = Column(String, nullable=True)

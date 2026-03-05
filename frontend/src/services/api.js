@@ -40,7 +40,7 @@ export const authService = {
 
 export const userService = {
   // ✅ FIX: Changed from '/users/me' to '/auth/me'
-  getProfile: () => api.get('/api/v1/auth/me'), 
+  getProfile: () => api.get('/api/v1/auth/me'),
   updateProfile: (data) => api.put('/api/v1/auth/me', data),
   updatePassword: (data) => api.put('/api/v1/auth/password', data),
 };
@@ -54,6 +54,10 @@ export const walletService = {
   allocate: (data) => api.post('/api/v1/wallets/allocate', data),
   deallocate: (data) => api.post('/api/v1/wallets/deallocate', data),
   getHistory: () => api.get('/api/v1/wallets/history'),
+};
+
+export const mpesaService = {
+  initiateStkPush: (data) => api.post('/api/v1/mpesa/stkpush', data),
 };
 
 export default api;
